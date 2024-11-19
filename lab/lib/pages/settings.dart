@@ -86,7 +86,10 @@ class _SettingsState extends State<Settings> {
                             shortestPathValue = value;
                           });
                         }),
-                        Divider(height: 32),
+                        Divider(
+                          color: colorScheme.secondary,
+                          thickness: 1,
+                        ),
                         Text(
                           '난이도 설정',
                           style: nanum25pEB
@@ -108,7 +111,10 @@ class _SettingsState extends State<Settings> {
                             );
                           }).toList(),
                         ),
-                        const Divider(height: 32),
+                        Divider(
+                          color: colorScheme.secondary,
+                          thickness: 1,
+                        ),
                         Center(
                           child: ElevatedButton.icon(
                             onPressed: () {

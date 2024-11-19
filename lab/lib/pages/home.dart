@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lab/pages/problem_detail.dart';
 import 'package:lab/types/problem.dart';
+import 'package:lab/welcome.dart';
 import 'package:lab/widets/basic_card.dart';
 import '../styles.dart';
 
@@ -42,10 +44,13 @@ class _HomePageState extends State<HomePage> {
               children: [
                 BasicCard(
                   child: Center(
-                    child: Text(
-                      "OOO점 상위 OO%!",
-                      style: nanum30pEB,
-                    ),
+                    // child: Text(
+                    //   "OOO점 상위 OO%!",
+                    //   style: nanum30pEB,
+                    // ),
+                    child: ElevatedButton(onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => ProblemDetail()));
+                    }, child: Text('asdasd')),
                   ),
                 ),
                 BasicCard(

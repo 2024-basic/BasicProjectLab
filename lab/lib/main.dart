@@ -4,6 +4,7 @@ import 'package:lab/pages/lock_screen.dart';
 import 'package:lab/pages/problem_list.dart';
 import 'package:lab/pages/settings.dart';
 import 'package:lab/pages/status.dart';
+import 'package:lab/widets/basic_app_bar.dart';
 import 'styles.dart';
 
 void main() {
@@ -66,27 +67,7 @@ class _MyAppState extends State<MyApp>
         useMaterial3: true,
       ),
       home: Scaffold(
-        appBar: AppBar(
-          backgroundColor: colorScheme.inversePrimary,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 25, top: 10),
-                child: !Navigator.canPop(context) ?
-                  Text('evenUP', style: nanum30pEB,) :
-                  IconButton(onPressed: (){
-                    Navigator.pop(context);
-                  }, icon: const Icon(Icons.arrow_back_ios, size: 40, color: primaryColor,),),
-              ),
-              IconButton(onPressed: (){}, icon: const Icon(
-                Icons.search,
-                size: 40,
-                color: primaryColor,
-              ),)
-            ],
-          )
-        ),
+        appBar: const BasicAppBar(),
         body: TabBarView(
           controller: _tabController,
           children: pages.map((e) => e['page']).toList().cast(),
