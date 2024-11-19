@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:lab/pages/home.dart';
+import 'package:lab/pages/lock_screen.dart';
 import 'package:lab/pages/problem_list.dart';
 import 'package:lab/pages/settings.dart';
 import 'package:lab/pages/status.dart';
 import 'styles.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const LockScreenApp());
 }
 
 class MyApp extends StatefulWidget {
