@@ -107,7 +107,7 @@ public class ProblemService {
     }
 
     public Problem getProblem(Integer id) {
-        return problemRepository.findById(id).orElseThrow();
+        return problemRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Problem not found: " + id));
     }
 
     private AlgorithmTag findTagByKey(AlgorithmTagDto dto) {

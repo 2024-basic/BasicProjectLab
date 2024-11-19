@@ -6,13 +6,13 @@ import com.even.labserver.problem.tag.AlgorithmTagDto;
 import com.google.gson.JsonParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -77,6 +77,7 @@ public class ScrapeManager {
             ret.addAll(getProblemsInternal(subList));
         }
 
+        System.out.println(LogUtils.prefix() + "Scraped " + ret.size() + " problems");
         return ret;
     }
 
@@ -95,6 +96,34 @@ public class ScrapeManager {
         }
 
         return ret;
+    }
+
+    public List<String> getSchoolUsers() {
+        List<String> ret = new ArrayList<>();
+        int page = 1;
+        while (page < 100) {
+            var users = getSchoolUsersInternal(page);
+            if (users.isEmpty()) {
+                break;
+            }
+            ret.addAll(users);
+            ++page;
+        }
+
+        return ret;
+    }
+
+    private List<String> getSchoolUsersInternal(int page) {
+        final String url = BojUrl + "school/ranklist/385/" + page;
+        try {
+            var doc = requestDocument(url).orElse(null);
+            if (doc == null) return new ArrayList<>();
+            var users = doc.selectXpath(".//table[@id='ranklist']/tbody/tr/td[2]/a");
+            return users.stream().map(x -> x.text().trim()).collect(Collectors.toList());
+        } catch (Exception e) {
+            System.out.println("Failed to get school users: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     private List<ProblemDto> getProblemsInternal(List<Integer> ids) {
@@ -154,8 +183,10 @@ public class ScrapeManager {
 
     private static Optional<Document> requestDocument(String url) {
         try {
-            return Optional.of(Jsoup.connect(url)
+            System.out.println(LogUtils.prefix() + "Requesting " + url);
+            var ret = Optional.of(Jsoup.connect(url)
                     .userAgent(UserAgent).get());
+            return ret;
         } catch (IOException e) {
             System.out.println("Failed to connect to " + url + ": " + e.getMessage());
             return Optional.empty();
@@ -164,9 +195,11 @@ public class ScrapeManager {
 
     private static Optional<String> requestJson(String url) {
         try {
-            return Optional.of(Jsoup.connect(url)
+            System.out.println(LogUtils.prefix() + "Requesting " + url);
+            var ret = Optional.of(Jsoup.connect(url)
                     .ignoreContentType(true)
                     .userAgent(UserAgent).execute().body());
+            return ret;
         } catch (IOException e) {
             System.out.println("Failed to connect to " + url + ": " + e.getMessage());
             return Optional.empty();

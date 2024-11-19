@@ -20,4 +20,10 @@ public class BojUserController {
     public ResponseEntity<?> getUser(@PathVariable(name = "id", required = true) String id) {
         return ResponseEntity.ok(bojUserService.findUserById(id));
     }
+
+    @GetMapping("/users")
+    @Operation(summary = "Get all CNU users")
+    public ResponseEntity<?> getAllUsers() {
+        return ResponseEntity.ok(bojUserService.findAllUsers());
+    }
 }

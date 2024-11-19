@@ -6,9 +6,7 @@ import com.even.labserver.utils.ScrapeManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +16,7 @@ public class BojUserService {
 
     private final ProblemService problemService;
     private final ScrapeManager scrapeManager;
+    private Set<String> schoolUsers;
 
     public BojUserDto findUserById(String userId) {
         var ret = bojUserRepository.findByUserId(userId);
@@ -46,7 +45,7 @@ public class BojUserService {
 //                    if (problem.isEmpty()) continue;
 //                    var userProblem = BojUserProblem.of(user, problem.get());
 //                    solvedProblems.add(userProblem);
-                    if (problemService.existsProblem(problemId)) {
+                    if (!problemService.existsProblem(problemId)) {
                         toScrape.add(problemId);
                     } else {
                         var problem = problemService.getProblem(problemService.findProblemById(problemId).getProblemId());
@@ -55,8 +54,8 @@ public class BojUserService {
                 }
 
                 var scraped = scrapeManager.getProblems(toScrape);
-                scraped.forEach(problem -> {
-                    var userProblem = BojUserProblem.of(user, problemService.getProblem(problem.getProblemId()));
+                scraped.forEach(problemDto -> {
+                    var userProblem = BojUserProblem.of(user, problemService.getProblem(problemService.addOrUpdateProblem(problemDto).getProblemId()));
                     solvedProblems.add(userProblem);
                 });
 
@@ -75,5 +74,15 @@ public class BojUserService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public Set<String> findAllUsers() {
+        if (schoolUsers == null) {
+            schoolUsers = new HashSet<>();
+            var scraped = scrapeManager.getSchoolUsers();
+            schoolUsers.addAll(scraped);
+        }
+
+        return schoolUsers;
     }
 }

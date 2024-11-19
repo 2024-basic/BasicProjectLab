@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lab/home.dart';
+import 'package:lab/problem_list.dart';
 import 'package:lab/welcome.dart';
 import 'styles.dart';
 
@@ -16,13 +17,25 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp>
     with SingleTickerProviderStateMixin{
-  static const Length = 2;
   TabController? _tabController;
+
+  List<dynamic> pages = [
+    {
+      'page': const HomePage(),
+      'title': '홈',
+      'icon': Icons.home_filled,
+    },
+    {
+      'page': const ProblemList(),
+      'title': '문제 목록',
+      'icon': Icons.list,
+    }
+  ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: Length, vsync: this);
+    _tabController = TabController(length: pages.length, vsync: this);
   }
 
   @override
@@ -38,7 +51,7 @@ class _MyAppState extends State<MyApp>
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: colorScheme,
-        useMaterial3: true
+        useMaterial3: true,
       ),
       home: Scaffold(
         appBar: AppBar(
@@ -48,7 +61,11 @@ class _MyAppState extends State<MyApp>
             children: [
               Padding(
                 padding: const EdgeInsets.only(left: 25, top: 10),
-                child: Text('evenUP', style: nanum30pEB,),
+                child: !Navigator.canPop(context) ?
+                  Text('evenUP', style: nanum30pEB,) :
+                  IconButton(onPressed: (){
+                    Navigator.pop(context);
+                  }, icon: const Icon(Icons.arrow_back_ios, size: 40, color: primaryColor,),),
               ),
               IconButton(onPressed: (){}, icon: const Icon(
                 Icons.search,
@@ -60,16 +77,16 @@ class _MyAppState extends State<MyApp>
         ),
         body: TabBarView(
           controller: _tabController,
-          children: const [
-            WelcomeHome(),
-            HomePage(),
-          ],
+          children: pages.map((e) => e['page']).toList().cast(),
         ),
-        bottomNavigationBar: TabBar(tabs: const [
-          Tab(icon: Icon(Icons.home_filled),),
-          Tab(icon: Icon(Icons.usb),)
-        ], controller: _tabController,),
-      )
+        bottomNavigationBar: TabBar(
+          tabs: pages.map((e) => Tab(
+            icon: Icon(e['icon']),
+            text: e['title'],
+          )).toList().cast(),
+          controller: _tabController,
+        ),
+      ),
     );
   }
 }
