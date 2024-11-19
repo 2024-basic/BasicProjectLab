@@ -7,7 +7,7 @@ import '../types/problem.dart';
 class ProblemDetail extends StatelessWidget {
   final Problem problem;
 
-  const ProblemDetail({super.key, required this.problem});
+  ProblemDetail({super.key, Problem? problem}) : problem = problem ?? Problem.randomDummy();
 
   @override
   Widget build(BuildContext context) {
