@@ -23,7 +23,7 @@ class _MyAppState extends State<MyApp>
     {
       'page': const HomePage(),
       'title': '홈',
-      'icon': Icons.home_filled,
+      'icon': Icons.home,
     },
     {
       'page': const ProblemList(),
