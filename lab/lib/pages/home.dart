@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lab/types/problem.dart';
 import 'package:lab/widets/basic_card.dart';
-import 'styles.dart';
+import '../styles.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

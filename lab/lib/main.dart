@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lab/home.dart';
-import 'package:lab/problem_list.dart';
-import 'package:lab/welcome.dart';
+import 'package:lab/pages/home.dart';
+import 'package:lab/pages/problem_list.dart';
+import 'package:lab/pages/settings.dart';
+import 'package:lab/pages/status.dart';
 import 'styles.dart';
 
 void main() {
@@ -29,6 +30,16 @@ class _MyAppState extends State<MyApp>
       'page': const ProblemList(),
       'title': '문제 목록',
       'icon': Icons.list,
+    },
+    {
+      'page': const Status(),
+      'title': '학습 현황',
+      'icon': Icons.bar_chart,
+    },
+    {
+      'page': const Settings(),
+      'title': '설정',
+      'icon': Icons.settings,
     }
   ];
 
@@ -79,13 +90,18 @@ class _MyAppState extends State<MyApp>
           controller: _tabController,
           children: pages.map((e) => e['page']).toList().cast(),
         ),
-        bottomNavigationBar: TabBar(
-          tabs: pages.map((e) => Tab(
-            icon: Icon(e['icon']),
-            text: e['title'],
-          )).toList().cast(),
-          controller: _tabController,
-        ),
+        bottomNavigationBar: SizedBox(
+          height: 70,
+          child: TabBar(
+            tabs: pages.map((e) => Tab(
+              icon: Icon(e['icon'], size: 40,),
+              text: e['title'],
+            )).toList().cast(),
+            labelStyle: nanum15pEB,
+            unselectedLabelColor: colorScheme.secondary,
+            controller: _tabController,
+          ),
+        )
       ),
     );
   }
