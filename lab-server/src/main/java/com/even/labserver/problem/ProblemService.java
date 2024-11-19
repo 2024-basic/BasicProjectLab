@@ -21,6 +21,8 @@ public class ProblemService {
 
     private final ScrapeManager scrapeManager;
 
+    private Integer startId = 1000;
+
     public ProblemDto findProblemById(Integer id) {
         var ret = problemRepository.findById(id);
         if (ret.isEmpty()) {
@@ -28,6 +30,25 @@ public class ProblemService {
             ret = problemRepository.findById(id);
         }
         return ret.map(ProblemDto::from).orElse(null);
+    }
+
+    public List<ProblemDto> scrapeUnscrapedProblems(Integer size) {
+        final int maxId = 30000, maxBatch = 500;
+
+        if (size < 1 || size > maxBatch) { throw new IllegalArgumentException("Invalid size"); }
+        int cur = startId;
+        var toScrape = new ArrayList<Integer>();
+        while (cur <= maxId && toScrape.size() < size) {
+            if (!existsProblem(cur) && !scrapeManager.isExcluded(cur)) {
+                toScrape.add(cur);
+            }
+            cur++;
+        }
+        startId = cur;
+        var scraped = scrapeManager.getProblems(toScrape);
+        var ret = new ArrayList<ProblemDto>(addOrUpdateProblems(scraped));
+
+        return ret;
     }
 
     public List<ProblemDto> findProblemsRange(Integer start, Integer end) {
@@ -54,22 +75,7 @@ public class ProblemService {
         try {
             Problem existing = problemRepository.findById(dto.getProblemId()).orElse(null);
             if (existing == null) {
-                var problem = Problem.builder()
-                                .problemId(dto.getProblemId())
-                                .title(dto.getTitle())
-                                .level(dto.getLevel())
-                                .solvedCount(dto.getSolvedCount())
-                                .votedCount(dto.getVotedCount())
-                                .givesNoRating(dto.getGivesNoRating())
-                                .averageTries(dto.getAverageTries())
-                                .source(dto.getSource())
-                                .build();
-
-                var tags = Arrays.stream(dto.getTags()).map(x -> {
-                    var tag = findTagByKey(x);
-                    return ProblemAlgorithmTag.of(problem, tag);
-                }).collect(Collectors.toList());
-                problem.setTags(tags);
+                var problem = fromProblemDto(dto);
 
 //                System.out.println(problem);
                 return ProblemDto.from(problemRepository.save(problem));
@@ -84,6 +90,22 @@ public class ProblemService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public List<ProblemDto> addOrUpdateProblems(List<ProblemDto> dtos) {
+        List<Problem> problems = new ArrayList<>();
+        for (var dto : dtos) {
+            Problem existing = problemRepository.findById(dto.getProblemId()).orElse(null);
+            if (existing == null) {
+                problems.add(fromProblemDto(dto));
+            } else {
+                // TODO: 수정 로직 추가
+                problems.add(existing);
+            }
+        }
+
+        List<Problem> saved = problemRepository.saveAll(problems);
+        return saved.stream().map(ProblemDto::from).collect(Collectors.toList());
     }
 
     public ProblemDto scrapeProblem(Integer id) {
@@ -117,5 +139,24 @@ public class ProblemService {
             existing = algorithmTagRepository.save(existing);
         }
         return existing;
+    }
+
+    private Problem fromProblemDto(ProblemDto dto) {
+        var ret = Problem.builder()
+                .problemId(dto.getProblemId())
+                .title(dto.getTitle())
+                .level(dto.getLevel())
+                .solvedCount(dto.getSolvedCount())
+                .votedCount(dto.getVotedCount())
+                .givesNoRating(dto.getGivesNoRating())
+                .averageTries(dto.getAverageTries())
+                .source(dto.getSource())
+                .build();
+        var tags = Arrays.stream(dto.getTags()).map(x -> {
+            var tag = findTagByKey(x);
+            return ProblemAlgorithmTag.of(ret, tag);
+        }).collect(Collectors.toList());
+        ret.setTags(tags);
+        return ret;
     }
 }
