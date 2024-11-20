@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../pages/search_screen.dart';
 
 import '../styles.dart';
 
@@ -15,14 +16,16 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 25, top: 10),
+              padding: const EdgeInsets.only(left: 25),
               child: !Navigator.canPop(context) ?
               Text('evenUP', style: nanum30pEB,) :
               IconButton(onPressed: (){
                 Navigator.pop(context);
               }, icon: const Icon(Icons.arrow_back_ios, size: 40, color: primaryColor,),),
             ),
-            IconButton(onPressed: (){}, icon: const Icon(
+            IconButton(onPressed: (){
+              showSearch(context: context, delegate: SearchScreen(),);
+            }, icon: const Icon(
               Icons.search,
               size: 40,
               color: primaryColor,
@@ -32,7 +35,7 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
+  //todo 이거 원래 있었는데 에러나서 살짝 지웠었음 ㅈㅅ
   @override
-  // TODO: implement preferredSize
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }

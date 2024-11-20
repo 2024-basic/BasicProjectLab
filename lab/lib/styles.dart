@@ -26,31 +26,37 @@ var nanum = ({size = 20, weight = FontWeight.w700, color = primaryColor}) {
 };
 
 var nanum20pR = nanum();
+var nanum10pR = nanum(size: 10);
 var nanum15pR = nanum(size: 15);
 var nanum25pR = nanum(size: 25);
 var nanum30pR = nanum(size: 30);
 
 var nanum20pB = nanum(weight: FontWeight.w800);
+var nanum10pB = nanum(size: 10, weight: FontWeight.w800);
 var nanum15pB = nanum(size: 15, weight: FontWeight.w800);
 var nanum25pB = nanum(size: 25, weight: FontWeight.w800);
 var nanum30pB = nanum(size: 30, weight: FontWeight.w800);
 
 var nanum20sR = nanum(color: secondaryColor);
+var nanum10sR = nanum(size: 10, color: secondaryColor);
 var nanum15sR = nanum(size: 15, color: secondaryColor);
 var nanum25sR = nanum(size: 25, color: secondaryColor);
 var nanum30sR = nanum(size: 30, color: secondaryColor);
 
 var nanum20sB = nanum(weight: FontWeight.w800, color: secondaryColor);
+var nanum10sB = nanum(size: 10, weight: FontWeight.w800, color: secondaryColor);
 var nanum15sB = nanum(size: 15, weight: FontWeight.w800, color: secondaryColor);
 var nanum25sB = nanum(size: 25, weight: FontWeight.w800, color: secondaryColor);
 var nanum30sB = nanum(size: 30, weight: FontWeight.w800, color: secondaryColor);
 
 var nanum20pEB = nanum(weight: FontWeight.w900);
+var nanum10pEB = nanum(size: 10, weight: FontWeight.w900);
 var nanum15pEB = nanum(size: 15, weight: FontWeight.w900);
 var nanum25pEB = nanum(size: 25, weight: FontWeight.w900);
 var nanum30pEB = nanum(size: 30, weight: FontWeight.w900);
 
 var nanum20sEB = nanum(weight: FontWeight.w900, color: secondaryColor);
+var nanum10sEB = nanum(size: 10, weight: FontWeight.w900, color: secondaryColor);
 var nanum15sEB = nanum(size: 15, weight: FontWeight.w900, color: secondaryColor);
 var nanum25sEB = nanum(size: 25, weight: FontWeight.w900, color: secondaryColor);
 var nanum30sEB = nanum(size: 30, weight: FontWeight.w900, color: secondaryColor);

@@ -86,9 +86,12 @@ class _SettingsState extends State<Settings> {
                             shortestPathValue = value;
                           });
                         }),
-                        Divider(
-                          color: colorScheme.secondary,
-                          thickness: 1,
+                        Padding(
+                          padding: EdgeInsets.only(top: 8, bottom: 8),
+                          child: Divider(
+                            color: colorScheme.secondary,
+                            thickness: 1,
+                          ),
                         ),
                         Text(
                           '난이도 설정',
@@ -107,13 +110,16 @@ class _SettingsState extends State<Settings> {
                               .map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
-                              child: Text(value),
+                              child: Text(value, style: nanum15sB,),
                             );
                           }).toList(),
                         ),
-                        Divider(
-                          color: colorScheme.secondary,
-                          thickness: 1,
+                        Padding(
+                          padding: EdgeInsets.only(top: 8, bottom: 8),
+                          child: Divider(
+                            color: colorScheme.secondary,
+                            thickness: 1,
+                          ),
                         ),
                         Center(
                           child: ElevatedButton.icon(

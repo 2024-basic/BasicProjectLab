@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lab/pages/problem_detail.dart';
+import 'package:lab/pages/search_screen.dart';
 import 'package:lab/types/problem.dart';
 import 'package:lab/welcome.dart';
 import 'package:lab/widets/basic_card.dart';
