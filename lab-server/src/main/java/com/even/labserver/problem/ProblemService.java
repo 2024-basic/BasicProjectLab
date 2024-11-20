@@ -6,11 +6,16 @@ import com.even.labserver.problem.tag.AlgorithmTagRepository;
 import com.even.labserver.problem.tag.ProblemAlgorithmTag;
 import com.even.labserver.utils.ScrapeManager;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,10 +23,49 @@ import java.util.stream.Collectors;
 public class ProblemService {
     private final ProblemRepository problemRepository;
     private final AlgorithmTagRepository algorithmTagRepository;
+    private static final Logger logger = LoggerFactory.getLogger(ProblemService.class);
 
     private final ScrapeManager scrapeManager;
+    private final Integer PAGE_SIZE = 10;
 
     private Integer startId = 1000;
+
+    public PagedModel<ProblemDto> getRecommendedProblems(int page, String kw, int levelStart, int levelEnd, boolean isAsc, String userId, boolean searchMode) {
+        if (searchMode) return getProblemsSearch(page, kw, isAsc);
+
+        var defaultSort = Sort.Order.asc("problemId");
+        List<Sort.Order> sorts = List.of(isAsc ? Sort.Order.asc("solvedCount") : Sort.Order.desc("solvedCount"), defaultSort);
+
+        var pageable = PageRequest.of(page, PAGE_SIZE, Sort.by(sorts));
+        Specification<Problem> basicSpec = Specification.where(null);
+
+        Specification<Problem> spec = Specification.where(kw.isEmpty() ? basicSpec : ProblemSpecifications.titleLike(kw))
+                .and(ProblemSpecifications.levelRange(levelStart, levelEnd))
+                .and(userId.isEmpty() ? basicSpec : ProblemSpecifications.notSolvedBy(userId));
+
+        var userTagWeights = getUserTagWeights(userId);
+        if (!userTagWeights.isEmpty()) {
+            var totalTagWeights = getTotalTagWeights();
+            spec = spec.and(ProblemSpecifications.sortedByTagSimilarity(userId, userTagWeights, totalTagWeights));
+        }
+
+        var ret = problemRepository.findAll(spec, pageable).map(ProblemDto::from);
+
+        return new PagedModel<>(ret);
+    }
+
+    private PagedModel<ProblemDto> getProblemsSearch(int page, String kw, boolean isAsc) {
+        var defaultSort = Sort.Order.asc("problemId");
+        List<Sort.Order> sorts = List.of(isAsc ? Sort.Order.asc("solvedCount") : Sort.Order.desc("solvedCount"), defaultSort);
+
+        var pageable = PageRequest.of(page, PAGE_SIZE, Sort.by(sorts));
+        Specification<Problem> basicSpec = Specification.where(null);
+        Specification<Problem> spec = Specification.where(kw.isEmpty() ? basicSpec : ProblemSpecifications.titleLike(kw));
+
+        var ret = problemRepository.findAll(spec, pageable).map(ProblemDto::from);
+
+        return new PagedModel<>(ret);
+    }
 
     public ProblemDto findProblemById(Integer id) {
         var ret = problemRepository.findById(id);
@@ -158,5 +202,17 @@ public class ProblemService {
         }).collect(Collectors.toList());
         ret.setTags(tags);
         return ret;
+    }
+
+    private Map<Integer, Long> getUserTagWeights(String userId) {
+        if (userId == null || userId.isEmpty()) return Map.of();
+
+        var tagFreqs = problemRepository.findTagFrequenciesByUserId(userId);
+        return tagFreqs.stream().collect(Collectors.toMap(x -> (Integer) x[0], x -> (Long) x[1]));
+    }
+
+    private Map<Integer, Long> getTotalTagWeights() {
+        var tagFreqs = problemRepository.findTagFrequencies();
+        return tagFreqs.stream().collect(Collectors.toMap(x -> (Integer) x[0], x -> (Long) x[1]));
     }
 }
