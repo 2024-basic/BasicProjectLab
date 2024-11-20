@@ -4,6 +4,10 @@ import com.even.labserver.bojuser.BojUserDto;
 import com.even.labserver.problem.ProblemDto;
 import com.even.labserver.problem.tag.AlgorithmTagDto;
 import com.google.gson.JsonParser;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.persistence.PostLoad;
+import org.aspectj.util.FileUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -11,6 +15,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,6 +25,36 @@ public class ScrapeManager {
     static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Whale/3.28.266.14 Safari/537.36";
     static final String BojUrl = "https://www.acmicpc.net/";
     static final String SolvedUrl = "https://solved.ac/";
+    static final String excludedIdsPath = "assets/excludedIds.txt";
+
+    final Set<Integer> excludedIds = new HashSet<>();
+
+    @PostConstruct
+    public void loadExcludedIds() {
+        try {
+            if (!new File(excludedIdsPath).exists()) {
+                System.out.println(excludedIdsPath + " not found");
+                return;
+            }
+            var ids = FileUtil.readAsLines(new File(excludedIdsPath));
+            for (var id : ids) {
+                excludedIds.add(Integer.parseInt(id));
+            }
+            System.out.println("Excluded IDs loaded");
+        } catch (Exception e) {
+            System.out.println("Failed to load excluded IDs: " + e.getMessage());
+        }
+    }
+
+    @PreDestroy
+    public void saveExcludedIds() {
+        FileUtil.writeAsString(new File(excludedIdsPath), excludedIds.stream().map(Object::toString).reduce((x, y) -> x + "\n" + y).orElse(""));
+        System.out.println("Excluded IDs saved");
+    }
+
+    public boolean isExcluded(int id) {
+        return excludedIds.contains(id);
+    }
 
     public Optional<ProblemDto> getProblem(String problemId) {
         final String url = "https://solved.ac/api/v3/problem/show?problemId=" + problemId;
@@ -149,6 +184,17 @@ public class ScrapeManager {
             var problem = fromProblemJson(problemElement.toString());
             ret.add(problem);
         }
+
+        boolean added = false;
+        for (var id : ids) {
+            if (ret.stream().anyMatch(x -> Objects.equals(x.getProblemId(), id))) {
+                continue;
+            }
+            excludedIds.add(id);
+            added = true;
+        }
+
+        if (added) saveExcludedIds();
 
         return ret;
     }

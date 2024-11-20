@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lab/styles.dart';
 import 'package:lab/widets/basic_app_bar.dart';
+import 'package:lab/widets/basic_card.dart';
 
 import '../types/problem.dart';
 
@@ -14,7 +15,26 @@ class ProblemDetail extends StatelessWidget {
     return Scaffold(
       appBar: const BasicAppBar(),
       body: Center(
-        child: Text('문제 상세 화면', style: nanum30pEB,),
+        child: BasicCard(
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Column(
+                    children: [
+                      Text('${problem.id}: ${problem.title}', style: nanum25pEB),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Text('푼 사람: ${problem.solved}', style: nanum15sR),
+                    ],
+                  )
+                ],
+              )
+            ],
+          ),
+        )
       ),
     );
   }
