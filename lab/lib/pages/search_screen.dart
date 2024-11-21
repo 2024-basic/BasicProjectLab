@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:lab/api_handler.dart';
 import 'dart:convert';
 import 'package:lab/styles.dart';
+import 'package:lab/types/problem.dart';
 
 class SearchScreen extends SearchDelegate<String> {
 
@@ -73,7 +74,7 @@ class SearchScreen extends SearchDelegate<String> {
 
   @override
   Widget buildResults(BuildContext context) {
-    return FutureBuilder<List<String>>(
+    return FutureBuilder<List<Problem>>(
       future: _fetchProblems(query),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -91,11 +92,11 @@ class SearchScreen extends SearchDelegate<String> {
             final problem = results[index];
             return ListTile(
               title: Text(
-                problem,
+                problem.title,
                 style: nanum15sB,
               ),
               onTap: () {
-                close(context, problem); // 문제 제목 반환
+                close(context, problem.title); // 문제 제목 반환
               },
             );
           },
@@ -108,7 +109,7 @@ class SearchScreen extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return FutureBuilder<List<String>>(
+    return FutureBuilder<List<Problem>>(
       future: _fetchProblems(query),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -126,11 +127,11 @@ class SearchScreen extends SearchDelegate<String> {
             final suggestion = suggestions[index];
             return ListTile(
               title: Text(
-                suggestion,
+                suggestion.title,
                 style: nanum15sB,
               ),
               onTap: () {
-                query = suggestion;
+                query = suggestion.title;
                 showResults(context); // 검색 결과 표시
               },
             );
@@ -142,18 +143,10 @@ class SearchScreen extends SearchDelegate<String> {
     );
   }
 
-  Future<List<String>> _fetchProblems(String query) async {
+  Future<List<Problem>> _fetchProblems(String query) async {
     if (query.isEmpty) return [];
 
     var ret = await ApiHandler().requestProblemsByKeyword(0, query);
-    return ret.map((item) => item.toString()).toList();
-
-    // if (response.statusCode == 200) {
-    //   final data = jsonDecode(response.body) as Map<String, dynamic>;
-    //   final problems = data['items'] as List<dynamic>;
-    //   return problems.map((item) => item['title'] as String).toList();
-    // } else {
-    //   throw Exception('Failed to fetch problems');
-    // }
+    return ret.map((item) => Problem.fromJson(item)).toList();
   }
 }

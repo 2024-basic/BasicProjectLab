@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lab/api_handler.dart';
 import 'package:lab/styles.dart';
 import 'package:lab/widets/basic_card.dart';
 import 'lock_screen.dart';
@@ -125,6 +126,7 @@ class _SettingsState extends State<Settings> {
                           child: ElevatedButton.icon(
                             onPressed: () {
                               // 로그아웃 로직
+                              ApiHandler().logout();
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(builder: (context) => LockScreen()),

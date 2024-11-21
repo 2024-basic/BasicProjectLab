@@ -4,7 +4,9 @@ import 'package:lab/main.dart';
 import 'package:lab/styles.dart';
 
 class LockScreen extends StatelessWidget {
-  const LockScreen({super.key});
+  LockScreen({super.key});
+
+  final TextEditingController _idcontroller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -23,39 +25,25 @@ class LockScreen extends StatelessWidget {
                 Column(
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    ElevatedButton(onPressed: () {
-                      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp(),));
-                      showDialog(context: context, builder: (context) {
-
-                        var idController = TextEditingController();
-                        return AlertDialog(
-                          title: Text('백준 계정으로 로그인하기', style: nanum20sB),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextField(
-                                decoration: InputDecoration(
-                                  labelText: '아이디',
-                                ),
-                                controller: idController,
-                              ),
-                            ],
+                    SizedBox(
+                      width: 300, // 명시적으로 너비를 설정하거나 Expanded를 사용할 수 있습니다.
+                      child: TextFormField(
+                        controller: _idcontroller,
+                        decoration: const InputDecoration(
+                          labelText: 'Input your Backjoon ID',
+                          labelStyle: TextStyle(
+                            color: Colors.grey,
                           ),
-                          actions: [
-                            ElevatedButton(onPressed: () {
-                              if (idController.text.isEmpty) {
-                                return;
-                              }
-                              Navigator.pop(context);
-                              ApiHandler().login(idController.text);
-                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp(),));
-                                        }, child: Text('로그인', style: nanum15sB)),
-                            ElevatedButton(onPressed: () {
-                              Navigator.pop(context);
-                            }, child: Text('취소', style: nanum15sB)),
-                          ],
-                        );
-                      });
+                          floatingLabelStyle: TextStyle(
+                            color: primaryColor,
+                          )
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 30,),
+                    ElevatedButton(onPressed: () {
+                      ApiHandler().login(_idcontroller.toString());
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp(),));
                     }, style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
                       shape: RoundedRectangleBorder(
@@ -65,22 +53,15 @@ class LockScreen extends StatelessWidget {
                       backgroundColor: Colors.white,
                     ),
                         child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Image.asset('assets/boj_icon.png', width: 40,),
-                        SizedBox(width: 40,),
-                        Text('백준 계정으로 시작하기', style: nanum20sB),
-                      ],
-                    ))
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Image.asset('assets/boj_icon.png', width: 40,),
+                            SizedBox(width: 40,),
+                            Text('백준 id로 시작하기', style: nanum20sB),
+                          ],
+                        ))
                   ],
                 ),
-                SizedBox(height: 4,),
-                InkWell(
-                  onTap: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp(),));
-                  },
-                  child: Text('Guest Login', style: nanum15sR),
-                )
               ],
             ),
             SizedBox(height: 60,)
@@ -102,7 +83,7 @@ class LockScreenApp extends StatelessWidget {
         colorScheme: colorScheme,
         useMaterial3: true,
       ),
-      home: const LockScreen(),
+      home: LockScreen(),
     );
   }
 }
