@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:lab/api_handler.dart';
 import 'dart:convert';
 import 'package:lab/styles.dart';
 
 class SearchScreen extends SearchDelegate<String> {
-  final String baseUrl = 'https://solved.ac/api/v3/search/suggestion';
 
   SearchScreen()
       : super(
@@ -109,7 +109,7 @@ class SearchScreen extends SearchDelegate<String> {
   @override
   Widget buildSuggestions(BuildContext context) {
     return FutureBuilder<List<String>>(
-      future: _fetchSuggestions(query),
+      future: _fetchProblems(query),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -144,38 +144,16 @@ class SearchScreen extends SearchDelegate<String> {
 
   Future<List<String>> _fetchProblems(String query) async {
     if (query.isEmpty) return [];
-    final url = Uri.parse('$baseUrl/problem?query=$query');
-    final response = await http.get(url, headers: {
-      'x-solvedac-language': 'ko', // 필요한 언어 설정
-    });
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final problems = data['items'] as List<dynamic>;
-      return problems.map((item) => item['title'] as String).toList();
-    } else {
-      throw Exception('Failed to fetch problems');
-    }
-  }
+    var ret = await ApiHandler().requestProblemsByKeyword(0, query);
+    return ret.map((item) => item.toString()).toList();
 
-  Future<List<String>> _fetchSuggestions(String query) async {
-    if (query.isEmpty) return [];
-
-    final url = Uri.parse('$baseUrl?query=${Uri.encodeComponent(query)}');
-    final response = await http.get(
-      url,
-      headers: {
-        'Accept': 'application/json',
-        'x-solvedac-language': 'ko',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final autocomplete = data['autocomplete'] as List<dynamic>;
-      return autocomplete.map((item) => item['caption'] as String).toList();
-    } else {
-      throw Exception('Failed to fetch suggestions');
-    }
+    // if (response.statusCode == 200) {
+    //   final data = jsonDecode(response.body) as Map<String, dynamic>;
+    //   final problems = data['items'] as List<dynamic>;
+    //   return problems.map((item) => item['title'] as String).toList();
+    // } else {
+    //   throw Exception('Failed to fetch problems');
+    // }
   }
 }

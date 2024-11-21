@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @Tag(name = "Problem")
@@ -194,6 +191,8 @@ public class ProblemController {
                                                     @RequestParam(name = "searchMode", required = true, defaultValue = "false") Boolean searchMode) {
         if (page < 0 || levelStart < 1 || levelEnd > 30 || levelStart > levelEnd)
             return ResponseEntity.badRequest().body("Invalid parameters");
+
+        System.out.println("page: " + page + ", kw: " + kw + ", levelStart: " + levelStart + ", levelEnd: " + levelEnd + ", isAsc: " + isAsc + ", userId: " + userId + ", searchMode: " + searchMode);
 
         var problems = problemService.getRecommendedProblems(page, kw, levelStart, levelEnd, isAsc, userId, searchMode);
         return ResponseEntity.ok(problems);
