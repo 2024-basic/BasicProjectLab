@@ -106,9 +106,11 @@ public class ProblemService {
             }
         }
 
-        var scraped = scrapeManager.getProblems(toScrape);
-        scraped.forEach(this::addOrUpdateProblem);
-        ret.addAll(scraped);
+        if (!toScrape.isEmpty()) {
+            var scraped = scrapeManager.getProblems(toScrape);
+            scraped.forEach(this::addOrUpdateProblem);
+            ret.addAll(scraped);
+        }
 
         ret.sort((a, b) -> a.getProblemId() - b.getProblemId());
 

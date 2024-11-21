@@ -5,7 +5,7 @@ import 'package:lab/widets/basic_card_half.dart';
 
 import '../styles.dart';
 import '../types/problem.dart';
-import '../types/half_problem.dart';
+import '../widets/problem_tile.dart';
 
 class Status extends StatefulWidget {
   const Status({super.key});
@@ -31,9 +31,9 @@ class _StatusState extends State<Status> with TickerProviderStateMixin {
   ];
 
   int goal = 10;
-  List<HalfProblem> halfproblems = [];
-  List<HalfProblem> halfproblems2 = [];
-  HalfProblem? unratedHalfProblem;
+  List<Problem> halfproblems = [];
+  List<Problem> halfproblems2 = [];
+  Problem? unratedProblem;
   late List<AnimationController> _controllers;
   late List<Animation<double>> _animations;
 
@@ -70,18 +70,18 @@ class _StatusState extends State<Status> with TickerProviderStateMixin {
     }
 
     halfproblems = [
-      HalfProblem.randomDummy(),
-      HalfProblem.randomDummy(),
-      HalfProblem.randomDummy(),
-      HalfProblem.randomDummy(),
-      HalfProblem.randomDummy(),
+      Problem.randomDummy(),
+      Problem.randomDummy(),
+      Problem.randomDummy(),
+      Problem.randomDummy(),
+      Problem.randomDummy(),
     ];
     halfproblems2 = [
-      HalfProblem.randomDummy(),
-      HalfProblem.randomDummy(),
-      HalfProblem.randomDummy(),
+      Problem.randomDummy(),
+      Problem.randomDummy(),
+      Problem.randomDummy(),
     ];
-    unratedHalfProblem = HalfProblem.randomDummy();
+    unratedProblem = Problem.randomDummy();
   }
 
   @override
@@ -229,7 +229,7 @@ class _StatusState extends State<Status> with TickerProviderStateMixin {
                             itemCount: halfproblems.length,
                             itemBuilder: (context, index) {
                               final halfproblem = halfproblems[index];
-                              return halfproblem.toListTile(context, () {});
+                              return toListTileHalf(halfproblem, context, () {});
                             },
                             separatorBuilder: (context, index) => Divider(
                                 color: colorScheme.secondary, thickness: 1),
@@ -275,7 +275,7 @@ class _StatusState extends State<Status> with TickerProviderStateMixin {
                             itemCount: halfproblems2.length,
                             itemBuilder: (context, index) {
                               final halfproblem2 = halfproblems2[index];
-                              return halfproblem2.toListTile(context, () {});
+                              return toListTileHalf(halfproblem2, context, () {});
                             },
                             separatorBuilder: (context, index) => Divider(
                                 color: colorScheme.secondary, thickness: 1),

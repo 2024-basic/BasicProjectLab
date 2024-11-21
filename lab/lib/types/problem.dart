@@ -1,17 +1,14 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-
-import '../styles.dart';
-
 class Problem {
   final int id;
   final String title;
   final String description;
   final int level;
   final int solved;
+  final double averageTries;
 
-  Problem(this.id, this.title, this.description, this.level, this.solved);
+  Problem(this.id, this.title, this.description, this.level, this.solved, this.averageTries);
 
   static Problem randomDummy() {
     var rand = Random();
@@ -21,15 +18,25 @@ class Problem {
       '더미 문제 ${rand.nextInt(1000)}',
       '$randId번 문제\n대충 설명\n사용 알고리즘: asdasd',
       rand.nextInt(1),
-      rand.nextInt(100)
+      rand.nextInt(100),
+      rand.nextDouble(),
     );
   }
 
-  ListTile toListTile(BuildContext context, dynamic onTapCallback) {
-    return ListTile(
-      title: Text(title, style: nanum20sEB),
-      trailing: Text("푼 사람: $solved", style: nanum15sR),
-      // onTap: onTapCallback,
+  static fromJson(Map<String, dynamic> mp) {
+    String tagsString = '#${(mp['tags'] as List).map((tag) => tag['displayName']).join(', #')}';
+    return Problem(
+      mp['problemId'],
+      mp['title'],
+      tagsString,
+      mp['level'],
+      mp['solvedCount'],
+      mp['averageTries'],
     );
+  }
+
+  @override
+  String toString() {
+    return 'Problem{id: $id, title: $title, description: $description, level: $level, solved: $solved, averageTries: $averageTries}';
   }
 }

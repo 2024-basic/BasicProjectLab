@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lab/pages/problem_detail.dart';
 import 'package:lab/pages/search_screen.dart';
 import 'package:lab/types/problem.dart';
-import 'package:lab/welcome.dart';
 import 'package:lab/widets/basic_card.dart';
 import '../styles.dart';
+import '../widets/problem_tile.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -97,7 +97,7 @@ class _HomePageState extends State<HomePage> {
                           itemCount: problems.length,
                           itemBuilder: (context, index) {
                             final problem = problems[index];
-                            return problem.toListTile(context, () {});
+                            return toListTile(problem, context, () {});
                           },
                           separatorBuilder: (context, index) => Divider(
                               color: colorScheme.secondary, thickness: 1),

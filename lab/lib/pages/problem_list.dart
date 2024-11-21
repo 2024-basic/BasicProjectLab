@@ -3,6 +3,8 @@ import 'package:lab/styles.dart';
 import 'package:lab/types/problem.dart';
 import 'package:lab/widets/basic_card.dart';
 
+import '../widets/problem_tile.dart';
+
 class ProblemList extends StatefulWidget {
   const ProblemList({super.key});
 
@@ -60,7 +62,7 @@ class _ProblemListState extends State<ProblemList> {
             child: const Icon(Icons.recycling,
                 color: Colors.white),
           ),
-          child: problem.toListTile(context, () {}),
+          child: toListTile(problem, context, () {}),
         );
       },
       separatorBuilder: (context, index) => Divider(

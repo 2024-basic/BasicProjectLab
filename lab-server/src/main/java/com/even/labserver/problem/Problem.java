@@ -35,7 +35,7 @@ public class Problem extends BaseTimeEntity {
 //    @ManyToMany(mappedBy = "problems", fetch = FetchType.EAGER)
 //    @EqualsAndHashCode.Exclude
 //    private List<AlgorithmTag> tags;
-    @OneToMany(mappedBy = "problem", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "problem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @Builder.Default

@@ -25,11 +25,14 @@ class ProblemDetail extends StatelessWidget {
                       Text('${problem.id}: ${problem.title}', style: nanum25pEB),
                     ],
                   ),
-                  Column(
-                    children: [
-                      Text('푼 사람: ${problem.solved}', style: nanum15sR),
-                    ],
-                  )
+                  Expanded(child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Column(
+                      children: [
+                        Text('푼 사람: ${problem.solved}', style: nanum15sR),
+                      ],
+                    ),
+                  ))
                 ],
               )
             ],
