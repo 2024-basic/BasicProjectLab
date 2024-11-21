@@ -154,7 +154,9 @@ class _HomePageState extends State<HomePage> {
                                           unratedProblem!.title,
                                           unratedProblem!.description,
                                           index + 1,
-                                          unratedProblem!.solved);
+                                          unratedProblem!.solved,
+                                          unratedProblem!.averageTries
+                                      );
                                     });
                                   },
                                 ),
