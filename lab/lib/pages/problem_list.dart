@@ -62,7 +62,7 @@ class _ProblemListState extends State<ProblemList> {
             child: const Icon(Icons.recycling,
                 color: Colors.white),
           ),
-          child: toListTile(problem, context, () {}),
+          child: toListTile(problem, context),
         );
       },
       separatorBuilder: (context, index) => Divider(

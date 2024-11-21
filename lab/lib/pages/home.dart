@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:lab/api_handler.dart';
 import 'package:lab/pages/problem_detail.dart';
 import 'package:lab/pages/search_screen.dart';
 import 'package:lab/types/problem.dart';
@@ -21,13 +24,18 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // dummy problems
-    problems = [
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-    ];
-    unratedProblem = Problem.randomDummy();
+    ApiHandler().requestRecommendedProblems(0, 10, 30).then((list) {
+      setState(() {
+        list = list.sublist(0, 5);
+        problems = List<Problem>.from(list);
+        problems.shuffle();
+      });
+    });
+    ApiHandler().requestSolvedProblems(0, 10, 30).then((list) {
+      setState(() {
+        unratedProblem = list[Random().nextInt(list.length)];
+      });
+    });
   }
 
   @override
@@ -95,9 +103,9 @@ class _HomePageState extends State<HomePage> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: problems.length,
-                          itemBuilder: (context, index) {
+                          itemBuilder: (childContext, index) {
                             final problem = problems[index];
-                            return toListTile(problem, context, () {});
+                            return toListTile(problem, context);
                           },
                           separatorBuilder: (context, index) => Divider(
                               color: colorScheme.secondary, thickness: 1),

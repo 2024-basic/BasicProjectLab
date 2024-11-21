@@ -168,7 +168,7 @@ public class ProblemController {
                     })
             })
     })
-//    @Cacheable(value = "recommendedProblems", key = "{#page, #kw, #levelStart, #levelEnd, #isAsc, #userId, #searchMode}")
+//    @Cacheable(value = "recommendedProblems", key = "{#page, #kw, #levelStart, #levelEnd, #isAsc, #userId, #searchMode, #solvedByUser}")
     public ResponseEntity<?> getRecommendedProblems(@Parameter(description = "페이지 번호, 0부터 시작합니다")
                                                     @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
 
@@ -188,13 +188,14 @@ public class ProblemController {
                                                     @RequestParam(name = "userId", required = false, defaultValue = "") String userId,
 
                                                     @Parameter(description = "검색 모드 여부, 검색 모드일 경우, page, kw, isAsc만 사용되고 푼 문제 수로 정렬됩니다.")
-                                                    @RequestParam(name = "searchMode", required = true, defaultValue = "false") Boolean searchMode) {
+                                                    @RequestParam(name = "searchMode", required = false, defaultValue = "false") Boolean searchMode,
+
+                                                    @Parameter(description = "사용자가 푼 문제만 반환할지 여부")
+                                                    @RequestParam(name = "solvedByUser", required = false, defaultValue = "false") Boolean solvedByUser) {
         if (page < 0 || levelStart < 1 || levelEnd > 30 || levelStart > levelEnd)
             return ResponseEntity.badRequest().body("Invalid parameters");
 
-        System.out.println("page: " + page + ", kw: " + kw + ", levelStart: " + levelStart + ", levelEnd: " + levelEnd + ", isAsc: " + isAsc + ", userId: " + userId + ", searchMode: " + searchMode);
-
-        var problems = problemService.getRecommendedProblems(page, kw, levelStart, levelEnd, isAsc, userId, searchMode);
+        var problems = problemService.getRecommendedProblems(page, kw, levelStart, levelEnd, isAsc, userId, searchMode, solvedByUser);
         return ResponseEntity.ok(problems);
     }
 

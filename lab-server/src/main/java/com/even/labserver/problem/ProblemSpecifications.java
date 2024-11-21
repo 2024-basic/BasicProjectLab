@@ -15,7 +15,6 @@ public class ProblemSpecifications {
     static Specification<Problem> titleLike(String kw) {
         return (b, query, cb) -> {
             query.distinct(true);
-            System.out.println("titleLike: " + kw);
             return cb.or(cb.like(b.get("title"), "%" + kw.trim() + "%"));
         };
     }
@@ -24,6 +23,17 @@ public class ProblemSpecifications {
         return (b, query, cb) -> {
             query.distinct(true);
             return cb.and(cb.greaterThanOrEqualTo(b.get("level"), levelStart), cb.lessThanOrEqualTo(b.get("level"), levelEnd));
+        };
+    }
+
+    static Specification<Problem> solvedBy(String userId) {
+        return (b, query, cb) -> {
+            query.distinct(true);
+
+            var problemUserJoin = b.join("users", JoinType.LEFT);
+            var userPath = problemUserJoin.get("user").get("userId");
+
+            return cb.equal(userPath, userId);
         };
     }
 

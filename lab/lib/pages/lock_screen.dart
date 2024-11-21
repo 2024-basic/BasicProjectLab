@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lab/api_handler.dart';
 import 'package:lab/main.dart';
 import 'package:lab/styles.dart';
 
@@ -23,7 +24,38 @@ class LockScreen extends StatelessWidget {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     ElevatedButton(onPressed: () {
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp(),));
+                      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp(),));
+                      showDialog(context: context, builder: (context) {
+
+                        var idController = TextEditingController();
+                        return AlertDialog(
+                          title: Text('백준 계정으로 로그인하기', style: nanum20sB),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                decoration: InputDecoration(
+                                  labelText: '아이디',
+                                ),
+                                controller: idController,
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            ElevatedButton(onPressed: () {
+                              if (idController.text.isEmpty) {
+                                return;
+                              }
+                              Navigator.pop(context);
+                              ApiHandler().login(idController.text);
+                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp(),));
+                                        }, child: Text('로그인', style: nanum15sB)),
+                            ElevatedButton(onPressed: () {
+                              Navigator.pop(context);
+                            }, child: Text('취소', style: nanum15sB)),
+                          ],
+                        );
+                      });
                     }, style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
                       shape: RoundedRectangleBorder(

@@ -30,7 +30,7 @@ public class ProblemService {
 
     private Integer startId = 1000;
 
-    public PagedModel<ProblemDto> getRecommendedProblems(int page, String kw, int levelStart, int levelEnd, boolean isAsc, String userId, boolean searchMode) {
+    public PagedModel<ProblemDto> getRecommendedProblems(int page, String kw, int levelStart, int levelEnd, boolean isAsc, String userId, boolean searchMode, boolean solvedByUser) {
         if (searchMode) return getProblemsSearch(page, kw, isAsc);
 
         var defaultSort = Sort.Order.asc("problemId");
@@ -41,7 +41,9 @@ public class ProblemService {
 
         Specification<Problem> spec = Specification.where(kw.isEmpty() ? basicSpec : ProblemSpecifications.titleLike(kw))
                 .and(ProblemSpecifications.levelRange(levelStart, levelEnd))
-                .and(userId.isEmpty() ? basicSpec : ProblemSpecifications.notSolvedBy(userId));
+                .and(userId.isEmpty() ? basicSpec : (solvedByUser ?
+                                ProblemSpecifications.solvedBy(userId) :
+                                ProblemSpecifications.notSolvedBy(userId)));
 
         var userTagWeights = getUserTagWeights(userId);
         if (!userTagWeights.isEmpty()) {
@@ -164,7 +166,6 @@ public class ProblemService {
         var ret = new ArrayList<ProblemDto>();
         var scraped = scrapeManager.getProblemsRange(startId, endId);
         for (var problem : scraped) {
-            System.out.println(problem);
             ret.add(addOrUpdateProblem(problem));
         }
         return ret;

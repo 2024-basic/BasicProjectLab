@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:lab/types/problem.dart';
 
@@ -25,6 +24,7 @@ class ApiHandler {
 
   void login(String userId) {
     this.userId = userId;
+    print('Logged in as $userId');
   }
 
   void logout() {
@@ -66,7 +66,7 @@ class ApiHandler {
 
   Future<List<Problem>> requestProblemsByKeyword(int page, String kw) {
     if (page < 0) throw Exception('Invalid page number');
-    return requestJson('${BASE_URL}recommended-problems?page=$page&kw=${Uri.encodeComponent(kw)}&levelStart=1&levelEnd=30&isAsc=false&searchMode=true').then((v) {
+    return requestJson(_recommendedProblemsUrl(page: page, kw: kw, searchMode: true)).then((v) {
       var lst = v['content'] as List<dynamic>;
       var ret = <Problem>[];
       for (var item in lst) {
@@ -74,6 +74,51 @@ class ApiHandler {
       }
       return ret;
     });
+  }
+
+  Future<List<Problem>> requestRecommendedProblems(int page, int levelStart, int levelEnd) {
+    if (page < 0) throw Exception('Invalid page number');
+    return requestJson(_recommendedProblemsUrl(page: page, levelStart: levelStart, levelEnd: levelEnd, userId: userId)).then((v) {
+      var lst = v['content'] as List<dynamic>;
+      var ret = <Problem>[];
+      for (var item in lst) {
+        ret.add(Problem.fromJson(item));
+      }
+      return ret;
+    });
+  }
+
+  Future<List<Problem>> requestSolvedProblems(int page, int levelStart, int levelEnd) {
+    if (page < 0) throw Exception('Invalid page number');
+    return requestJson(_recommendedProblemsUrl(page: page, levelStart: levelStart, levelEnd: levelEnd, userId: userId, solvedByUser: true)).then((v) {
+      var lst = v['content'] as List<dynamic>;
+      var ret = <Problem>[];
+      for (var item in lst) {
+        ret.add(Problem.fromJson(item));
+      }
+      return ret;
+    });
+  }
+
+  static String _recommendedProblemsUrl(
+      {int? page,
+      String? kw,
+      int? levelStart,
+      int? levelEnd,
+      bool? isAsc,
+      String? userId,
+      bool? searchMode,
+      bool? solvedByUser}) {
+    var url = '${BASE_URL}recommended-problems?';
+    if (page != null) url += 'page=$page&';
+    if (kw != null) url += 'kw=${Uri.encodeComponent(kw)}&';
+    if (levelStart != null) url += 'levelStart=$levelStart&';
+    if (levelEnd != null) url += 'levelEnd=$levelEnd&';
+    if (isAsc != null) url += 'isAsc=$isAsc&';
+    if (userId != null) url += 'userId=$userId&';
+    if (searchMode != null) url += 'searchMode=$searchMode&';
+    if (solvedByUser != null) url += 'solvedByUser=$solvedByUser&';
+    return url;
   }
 
 }

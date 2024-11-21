@@ -229,7 +229,7 @@ class _StatusState extends State<Status> with TickerProviderStateMixin {
                             itemCount: halfproblems.length,
                             itemBuilder: (context, index) {
                               final halfproblem = halfproblems[index];
-                              return toListTileHalf(halfproblem, context, () {});
+                              return toListTileHalf(halfproblem, context);
                             },
                             separatorBuilder: (context, index) => Divider(
                                 color: colorScheme.secondary, thickness: 1),
@@ -275,7 +275,7 @@ class _StatusState extends State<Status> with TickerProviderStateMixin {
                             itemCount: halfproblems2.length,
                             itemBuilder: (context, index) {
                               final halfproblem2 = halfproblems2[index];
-                              return toListTileHalf(halfproblem2, context, () {});
+                              return toListTileHalf(halfproblem2, context);
                             },
                             separatorBuilder: (context, index) => Divider(
                                 color: colorScheme.secondary, thickness: 1),
