@@ -77,7 +77,7 @@ public class ProblemService {
     }
 
     public List<ProblemDto> scrapeUnscrapedProblems(Integer size) {
-        final int maxId = 30000, maxBatch = 500;
+        final int maxId = 32747, maxBatch = 500;
 
         if (size < 1 || size > maxBatch) { throw new IllegalArgumentException("Invalid size"); }
         int cur = startId;

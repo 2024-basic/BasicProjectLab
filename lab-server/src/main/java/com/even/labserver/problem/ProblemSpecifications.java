@@ -58,7 +58,7 @@ public class ProblemSpecifications {
             // 유사도에 따른 정렬
 //            query.orderBy(cb.desc(similarityScore));
 
-            return cb.greaterThan(similarityExp, 1);
+            return cb.greaterThan(similarityExp, 0);
         };
     }
 
