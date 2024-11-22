@@ -22,7 +22,8 @@ class ProblemDetail extends StatelessWidget {
                 children: [
                   Column(
                     children: [
-                      Text('${problem.id}: ${problem.title}', style: nanum25pEB),
+                      Text('${problem.id}: ${problem.title}', style: nanum25pEB,
+                      softWrap: true, overflow: TextOverflow.visible,),
                     ],
                   ),
                   Expanded(child: Align(

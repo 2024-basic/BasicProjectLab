@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:lab/api_handler.dart';
+import 'package:lab/pages/problem_detail.dart';
 import 'dart:convert';
 import 'package:lab/styles.dart';
 import 'package:lab/types/problem.dart';
+
+import '../widets/problem_tile.dart';
 
 class SearchScreen extends SearchDelegate<String> {
 
@@ -91,12 +94,43 @@ class SearchScreen extends SearchDelegate<String> {
           itemBuilder: (context, index) {
             final problem = results[index];
             return ListTile(
-              title: Text(
-                problem.title,
-                style: nanum15sB,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,  // 왼쪽 정렬
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          problem.title,
+                          style: nanum15sEB,
+                          overflow: TextOverflow.ellipsis,  // 넘치는 텍스트는 말줄임표로 처리
+                          maxLines: 1,  // 한 줄로만 표시
+                        ),
+                      ),
+                      Text(
+                        '난이도: ${problem.level}',
+                        style: nanum15sB,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '푼 사람: ${problem.solved}',
+                        style: nanum10sEB,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              subtitle: Text(
+                problem.description,
+                style: nanum10sB,
               ),
               onTap: () {
-                close(context, problem.title); // 문제 제목 반환
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ProblemDetail(problem: problem,)));
               },
             );
           },
@@ -126,13 +160,45 @@ class SearchScreen extends SearchDelegate<String> {
           itemBuilder: (context, index) {
             final suggestion = suggestions[index];
             return ListTile(
-              title: Text(
-                suggestion.title,
-                style: nanum15sB,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,  // 왼쪽 정렬
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          suggestion.title,
+                          style: nanum15sEB,
+                          overflow: TextOverflow.ellipsis,  // 넘치는 텍스트는 말줄임표로 처리
+                          maxLines: 1,  // 한 줄로만 표시
+                        ),
+                      ),
+                      Text(
+                        '난이도: ${suggestion.level}',
+                        style: nanum15sB,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '푼 사람: ${suggestion.solved}',
+                        style: nanum10sEB,
+                      ),
+                    ],
+                  ),
+                ],
               ),
+              subtitle: Text(
+                suggestion.description,
+                style: nanum10sB,
+              ),  // 문제 설명
               onTap: () {
                 query = suggestion.title;
-                showResults(context); // 검색 결과 표시
+                //showResults(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ProblemDetail(problem: suggestion,)));
               },
             );
           },
@@ -147,6 +213,6 @@ class SearchScreen extends SearchDelegate<String> {
     if (query.isEmpty) return [];
 
     var ret = await ApiHandler().requestProblemsByKeyword(0, query);
-    return ret.map((item) => Problem.fromJson(item)).toList();
+    return ret.toList();
   }
 }
