@@ -42,7 +42,7 @@ class LockScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 30,),
                     ElevatedButton(onPressed: () {
-                      ApiHandler().login(_idcontroller.toString());
+                      ApiHandler().login(_idcontroller.text);
                       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp(),));
                     }, style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),

@@ -24,14 +24,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    ApiHandler().requestRecommendedProblems(0, 10, 30).then((list) {
+    ApiHandler().requestRecommendedProblems(0, 15, 30).then((list) {
       setState(() {
         list = list.sublist(0, 5);
         problems = List<Problem>.from(list);
         problems.shuffle();
       });
     });
-    ApiHandler().requestSolvedProblems(0, 10, 30).then((list) {
+    ApiHandler().requestSolvedProblems(0, 15, 30).then((list) {
       setState(() {
         unratedProblem = list[Random().nextInt(list.length)];
       });
@@ -53,13 +53,13 @@ class _HomePageState extends State<HomePage> {
               children: [
                 BasicCard(
                   child: Center(
-                    // child: Text(
-                    //   "OOO점 상위 OO%!",
-                    //   style: nanum30pEB,
-                    // ),
-                    child: ElevatedButton(onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => ProblemDetail()));
-                    }, child: Text('asdasd')),
+                    child: Text(
+                      "OOO점 상위 OO%!",
+                      style: nanum30pEB,
+                    ),
+                    // child: ElevatedButton(onPressed: () {
+                    //   Navigator.push(context, MaterialPageRoute(builder: (context) => ProblemDetail()));
+                    // }, child: Text('asdasd')),
                   ),
                 ),
                 BasicCard(
@@ -99,95 +99,93 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Column(
                       children: [
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: problems.length,
-                          itemBuilder: (childContext, index) {
-                            final problem = problems[index];
-                            return toListTile(problem, context);
-                          },
-                          separatorBuilder: (context, index) => Divider(
-                              color: colorScheme.secondary, thickness: 1),
-                        ),
+                        problems.isEmpty
+                            ? const Center(child: CircularProgressIndicator())
+                            : ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: problems.length,
+                                itemBuilder: (childContext, index) {
+                                  final problem = problems[index];
+                                  return toListTile(problem, context);
+                                },
+                                separatorBuilder: (context, index) => Divider(
+                                    color: colorScheme.secondary, thickness: 1),
+                              ),
                       ],
                     ),
                   ],
                 )),
-                if (unratedProblem != null)
-                  BasicCard(
-                      child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Column(
-                            children: [
-                              Text(
-                                "전에 푼 문제를 평가해주세요!",
-                                style: nanum25pEB,
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(5, (index) {
-                              return MouseRegion(
-                                onEnter: (_) {
-                                  setState(() {
-                                    hoverIndex = index;
-                                  });
-                                },
-                                onExit: (_) {
-                                  setState(() {
-                                    hoverIndex = -1;
-                                  });
-                                },
-                                child: IconButton(
-                                  icon: Icon(
-                                    Icons.circle,
-                                    color: index < (unratedProblem?.level ?? 0)
-                                        ? primaryColor
-                                        : (index <= hoverIndex
-                                            ? primaryColor.withOpacity(0.5)
-                                            : Colors.grey),
-                                  ),
-                                  onPressed: () {
+                BasicCard(
+                    child: unratedProblem == null ? const Center(child: CircularProgressIndicator())
+                        : Column(
+                      children: [
+                        Row(
+                          children: [
+                            Column(
+                              children: [
+                                Text(
+                                  "전에 푼 문제를 평가해주세요!",
+                                  style: nanum25pEB,
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(5, (index) {
+                                return MouseRegion(
+                                  onEnter: (_) {
                                     setState(() {
-                                      unratedProblem = Problem(
-                                          unratedProblem!.id,
-                                          unratedProblem!.title,
-                                          unratedProblem!.description,
-                                          index + 1,
-                                          unratedProblem!.solved,
-                                          unratedProblem!.averageTries
-                                      );
+                                      hoverIndex = index;
                                     });
                                   },
-                                ),
-                              );
-                            }),
-                          ),
-                          ListTile(
-                            title:
-                                Text(unratedProblem!.title, style: nanum20sEB),
-                            subtitle: Text(unratedProblem!.description),
-                            onTap: () {},
-                          )
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Icon(Icons.circle, color: primaryColor),
-                          Text("3.2", style: nanum15sR),
-                        ],
-                      )
-                    ],
-                  ))
+                                  onExit: (_) {
+                                    setState(() {
+                                      hoverIndex = -1;
+                                    });
+                                  },
+                                  child: IconButton(
+                                    icon: Icon(
+                                      Icons.circle,
+                                      color: index < (unratedProblem?.rate ?? 0)
+                                          ? primaryColor
+                                          : (index <= hoverIndex
+                                          ? primaryColor.withOpacity(0.5)
+                                          : Colors.grey),
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        unratedProblem!.rate = index + 1;
+                                      });
+                                    },
+                                  ),
+                                );
+                              }),
+                            ),
+                            ListTile(
+                              title:
+                              Text(unratedProblem!.title, style: nanum20sEB),
+                              subtitle: Text(unratedProblem!.description),
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => ProblemDetail(problem: unratedProblem!, userSolved: true,)));
+                              },
+                            )
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Icon(Icons.circle, color: primaryColor),
+                            Text("3.2", style: nanum15sR),
+                          ],
+                        )
+                      ],
+                    )
+                )
               ],
             ),
           ),

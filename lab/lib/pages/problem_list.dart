@@ -1,4 +1,7 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
+import 'package:lab/api_handler.dart';
 import 'package:lab/styles.dart';
 import 'package:lab/types/problem.dart';
 import 'package:lab/widets/basic_card.dart';
@@ -13,29 +16,30 @@ class ProblemList extends StatefulWidget {
 }
 
 class _ProblemListState extends State<ProblemList> {
+  int _currentPage = 0;
+
   List<Problem> dailyProblems = [];
   List<Problem> challengeProblems = [];
+
+  Queue<Problem> waitingProblems = Queue();
 
   @override
   void initState() {
     super.initState();
     // dummy problems
-    dailyProblems = [
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-    ];
-    challengeProblems = [
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-    ];
+    ApiHandler().requestRecommendedProblems(_currentPage, 5, 30).then((lst) {
+      dailyProblems = lst;
+      setState(() {
+
+      });
+    });
+    ApiHandler().requestRecommendedProblems(_currentPage, 20, 30).then((lst) {
+      challengeProblems = lst;
+      setState(() {
+
+      });
+    });
+
   }
 
   ListView makeProblemList(List<Problem> problems) {
@@ -48,19 +52,23 @@ class _ProblemListState extends State<ProblemList> {
         return Dismissible(
           key: Key(problem.id.toString()),
           direction: DismissDirection.endToStart,
-          onDismissed: (direction) {
-            setState(() {
-              problems.removeAt(index);
-              problems.add(Problem.randomDummy());
-            });
+          onDismissed: (direction) async {
+            problems.removeAt(index);
+
+            if (waitingProblems.isNotEmpty) {
+              problems.insert(index, waitingProblems.removeFirst());
+            } else {
+              _currentPage += 5;
+              waitingProblems.addAll(await ApiHandler().requestRecommendedProblems(_currentPage, 5, 30));
+              problems.insert(index, waitingProblems.removeFirst());
+            }
+            setState(() {});
           },
           background: Container(
             color: Colors.lightGreen,
             alignment: Alignment.centerRight,
-            padding: const EdgeInsets.symmetric(
-                horizontal: 20.0),
-            child: const Icon(Icons.recycling,
-                color: Colors.white),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: const Icon(Icons.recycling, color: Colors.white),
           ),
           child: toListTile(problem, context),
         );
@@ -106,7 +114,11 @@ class _ProblemListState extends State<ProblemList> {
                         ),
                         Column(
                           children: [
-                            makeProblemList(dailyProblems),
+                            dailyProblems.isEmpty
+                                ? const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                : makeProblemList(dailyProblems),
                           ],
                         ),
                       ],
@@ -132,7 +144,11 @@ class _ProblemListState extends State<ProblemList> {
                         ),
                         Column(
                           children: [
-                            makeProblemList(challengeProblems),
+                            challengeProblems.isEmpty
+                                ? const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                : makeProblemList(challengeProblems),
                           ],
                         ),
                       ],
@@ -145,4 +161,3 @@ class _ProblemListState extends State<ProblemList> {
         ));
   }
 }
-

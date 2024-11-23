@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lab/api_handler.dart';
 import 'package:lab/widets/PidChart.dart';
 import 'package:lab/widets/basic_card.dart';
 import 'package:lab/widets/basic_card_half.dart';
@@ -69,19 +70,29 @@ class _StatusState extends State<Status> with TickerProviderStateMixin {
       controller.forward();
     }
 
-    halfproblems = [
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-    ];
-    halfproblems2 = [
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-      Problem.randomDummy(),
-    ];
-    unratedProblem = Problem.randomDummy();
+    // halfproblems = [
+    //   Problem.randomDummy(),
+    //   Problem.randomDummy(),
+    //   Problem.randomDummy(),
+    //   Problem.randomDummy(),
+    //   Problem.randomDummy(),
+    // ];
+    // halfproblems2 = [
+    //   Problem.randomDummy(),
+    //   Problem.randomDummy(),
+    //   Problem.randomDummy(),
+    // ];
+    // unratedProblem = Problem.randomDummy();
+
+    ApiHandler().requestSolvedProblems(2, 15, 30).then((lst) {
+      halfproblems = lst.sublist(0, 5);
+      setState(() {});
+    });
+    ApiHandler().requestRecommendedProblems(10, 10, 30).then((lst) {
+      halfproblems2 = lst.sublist(0, 3);
+      setState(() {});
+    });
+
   }
 
   @override

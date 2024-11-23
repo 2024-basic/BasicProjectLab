@@ -8,6 +8,9 @@ class Problem {
   final int solved;
   final double averageTries;
 
+  double rateAverage = 0;
+  int rate = 0;
+
   Problem(this.id, this.title, this.description, this.level, this.solved, this.averageTries);
 
   static Problem randomDummy() {
@@ -25,7 +28,7 @@ class Problem {
 
   static fromJson(Map<String, dynamic> mp) {
     String tagsString = '#${(mp['tags'] as List).map((tag) => tag['displayName']).join(', #')}';
-    return Problem(
+    Problem ret = Problem(
       mp['problemId'],
       mp['title'],
       tagsString,
@@ -33,6 +36,8 @@ class Problem {
       mp['solvedCount'],
       mp['averageTries'],
     );
+    ret.rateAverage = Random().nextDouble() * 5;
+    return ret;
   }
 
   @override

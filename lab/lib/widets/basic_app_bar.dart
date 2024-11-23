@@ -35,7 +35,6 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  //todo 이거 원래 있었는데 에러나서 살짝 지웠었음 ㅈㅅ
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }

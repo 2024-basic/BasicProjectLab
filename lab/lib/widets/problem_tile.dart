@@ -9,7 +9,7 @@ ListTile toListTile(Problem p, BuildContext context) {
     title: Text('${p.id}: ${p.title}', style: nanum20sEB),
     trailing: Text("푼 사람: ${p.solved}", style: nanum15sR),
     onTap: () {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => ProblemDetail(problem: p)));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => ProblemDetail(problem: p, userSolved: false,)));
     },
   );
 }

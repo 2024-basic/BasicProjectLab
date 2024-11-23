@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:lab/api_handler.dart';
 import 'package:lab/pages/problem_detail.dart';
-import 'dart:convert';
 import 'package:lab/styles.dart';
 import 'package:lab/types/problem.dart';
-
-import '../widets/problem_tile.dart';
+import 'package:lab/widets/spoiler.dart';
 
 class SearchScreen extends SearchDelegate<String> {
+  final ScrollController _scrollController = ScrollController();
+  List<Problem> _problems = [];
+  bool _isLoading = false;
+  int _currentPage = 0;
 
   SearchScreen()
       : super(
@@ -16,7 +17,32 @@ class SearchScreen extends SearchDelegate<String> {
     keyboardType: TextInputType.text,
     searchFieldStyle: TextStyle(fontSize: 20),
     textInputAction: TextInputAction.search,
-  );
+  ) {
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    print('Scrolling... ${_scrollController.position.pixels} / ${_scrollController.position.maxScrollExtent}');
+    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      _fetchMoreProblems();
+    }
+  }
+
+  Future<void> _fetchMoreProblems() async {
+    _isLoading = true;
+    _currentPage++;
+    final newProblems = await _fetchProblems(query, _currentPage);
+    _problems.addAll(newProblems);
+    print('Fetched ${newProblems.length} more problems');
+    _isLoading = false;
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -75,10 +101,11 @@ class SearchScreen extends SearchDelegate<String> {
     );
   }
 
+
   @override
   Widget buildResults(BuildContext context) {
     return FutureBuilder<List<Problem>>(
-      future: _fetchProblems(query),
+      future: _fetchProblems(query, 0),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -88,11 +115,15 @@ class SearchScreen extends SearchDelegate<String> {
           return Center(child: Text('No results found.'));
         }
 
-        final results = snapshot.data!;
+        _problems = snapshot.data!;
         return ListView.separated(
-          itemCount: results.length,
+          controller: _scrollController,
+          itemCount: _problems.length + (_isLoading ? 1 : 0),
           itemBuilder: (context, index) {
-            final problem = results[index];
+            if (index == _problems.length) {
+              return Center(child: CircularProgressIndicator());
+            }
+            final problem = _problems[index];
             return ListTile(
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,  // 왼쪽 정렬
@@ -144,7 +175,7 @@ class SearchScreen extends SearchDelegate<String> {
   @override
   Widget buildSuggestions(BuildContext context) {
     return FutureBuilder<List<Problem>>(
-      future: _fetchProblems(query),
+      future: _fetchProblems(query, 0),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -154,11 +185,15 @@ class SearchScreen extends SearchDelegate<String> {
           return Center(child: Text('No suggestions.'));
         }
 
-        final suggestions = snapshot.data!;
+        _problems = snapshot.data!;
         return ListView.separated(
-          itemCount: suggestions.length,
+          controller: _scrollController,
+          itemCount: _problems.length + (_isLoading ? 1 : 0),
           itemBuilder: (context, index) {
-            final suggestion = suggestions[index];
+            if (index == _problems.length) {
+              return Center(child: CircularProgressIndicator());
+            }
+            final suggestion = _problems[index];
             return ListTile(
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,  // 왼쪽 정렬
@@ -191,10 +226,7 @@ class SearchScreen extends SearchDelegate<String> {
                   ),
                 ],
               ),
-              subtitle: Text(
-                suggestion.description,
-                style: nanum10sB,
-              ),  // 문제 설명
+              subtitle: Spoiler(child: suggestion.description, style: nanum10sB),
               onTap: () {
                 query = suggestion.title;
                 //showResults(context);
@@ -209,10 +241,12 @@ class SearchScreen extends SearchDelegate<String> {
     );
   }
 
-  Future<List<Problem>> _fetchProblems(String query) async {
+  Future<List<Problem>> _fetchProblems(String query, int page) async {
     if (query.isEmpty) return [];
 
-    var ret = await ApiHandler().requestProblemsByKeyword(0, query);
+    print('Fetching problems with query: $query and page: $page');
+
+    var ret = await ApiHandler().requestProblemsByKeyword(page, query);
     return ret.toList();
   }
 }
