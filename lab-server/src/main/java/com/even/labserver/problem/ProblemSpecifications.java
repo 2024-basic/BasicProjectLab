@@ -1,6 +1,7 @@
 package com.even.labserver.problem;
 
 import com.even.labserver.bojuser.BojUserProblem;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.JoinType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,24 @@ public class ProblemSpecifications {
 //            query.orderBy(cb.desc(similarityScore));
 
             return cb.greaterThan(similarityExp, 0);
+        };
+    }
+
+    static Specification<Problem> sortedBy(String field, boolean isAsc) {
+        return (b, query, cb) -> {
+            query.orderBy(isAsc ? cb.asc(b.get(field)) : cb.desc(b.get(field)));
+            return cb.conjunction();
+        };
+    }
+
+    static Specification<Problem> weightedShuffledBy(String field, boolean isAsc) {
+        return (b, query, cb) -> {
+            Expression<Double> random = cb.function("RAND", Double.class);
+            Expression<?> weightedRandom = cb.prod(b.get(field), random);
+
+            query.orderBy(isAsc ? cb.asc(weightedRandom) : cb.desc(weightedRandom));
+
+            return cb.conjunction();
         };
     }
 

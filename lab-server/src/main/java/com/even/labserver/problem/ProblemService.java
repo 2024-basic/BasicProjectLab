@@ -33,17 +33,19 @@ public class ProblemService {
     public PagedModel<ProblemDto> getRecommendedProblems(int page, String kw, int levelStart, int levelEnd, boolean isAsc, String userId, boolean searchMode, boolean solvedByUser) {
         if (searchMode) return getProblemsSearch(page, kw, isAsc);
 
-        var defaultSort = Sort.Order.asc("problemId");
-        List<Sort.Order> sorts = List.of(isAsc ? Sort.Order.asc("solvedCount") : Sort.Order.desc("solvedCount"), defaultSort);
+//        var defaultSort = Sort.Order.asc("problemId");
+//        List<Sort.Order> sorts = List.of(isAsc ? Sort.Order.asc("solvedCount") : Sort.Order.desc("solvedCount"), defaultSort);
 
-        var pageable = PageRequest.of(page, PAGE_SIZE, Sort.by(sorts));
+        var pageable = PageRequest.of(page, PAGE_SIZE);
         Specification<Problem> basicSpec = Specification.where(null);
 
         Specification<Problem> spec = Specification.where(kw.isEmpty() ? basicSpec : ProblemSpecifications.titleLike(kw))
                 .and(ProblemSpecifications.levelRange(levelStart, levelEnd))
                 .and(userId.isEmpty() ? basicSpec : (solvedByUser ?
                                 ProblemSpecifications.solvedBy(userId) :
-                                ProblemSpecifications.notSolvedBy(userId)));
+                                ProblemSpecifications.notSolvedBy(userId)))
+//                .and(ProblemSpecifications.sortedBy("solvedCount", isAsc));
+                .and(ProblemSpecifications.weightedShuffledBy("solvedCount", isAsc));
 
         var userTagWeights = getUserTagWeights(userId);
         if (!userTagWeights.isEmpty()) {
