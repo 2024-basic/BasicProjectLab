@@ -6,32 +6,40 @@ import com.even.labserver.problem.tag.AlgorithmTag;
 import com.even.labserver.problem.tag.ProblemAlgorithmTag;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Formula;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * 문제 정보를 저장하는 엔티티
+ */
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(indexes = {
+        @Index(name = "level_idx", columnList = "level"),
+        @Index(name = "solved_count_idx", columnList = "solvedCount"),
+})
 public class Problem extends BaseTimeEntity {
     @Id
-    private Integer problemId;
+    private Integer problemId; // 문제 번호
     @Column(length = 700, nullable = false)
-    private String title;
+    private String title; // 문제 제목
     @Column(nullable = false)
-    private Integer level;
+    private Integer level; // 문제 난이도 (0 ~ 30)
     @Column(nullable = false)
-    private Integer solvedCount;
+    private Integer solvedCount; // 푼 사람 수
     @Column(nullable = false)
-    private Integer votedCount;
+    private Integer votedCount; // 난이도를 평가한 사람 수
     @Column(nullable = false)
-    private Boolean givesNoRating;
+    private Boolean givesNoRating; // solved.ac 레이팅을 주는지
     @Column(nullable = false)
-    private Double averageTries;
+    private Double averageTries; // 평균 시도 횟수
 //    @ManyToMany(mappedBy = "problems", fetch = FetchType.EAGER)
 //    @EqualsAndHashCode.Exclude
 //    private List<AlgorithmTag> tags;
@@ -39,39 +47,17 @@ public class Problem extends BaseTimeEntity {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @Builder.Default
-    private List<ProblemAlgorithmTag> tags = new ArrayList<>();
+    private List<ProblemAlgorithmTag> tags = new ArrayList<>(); // 문제의 알고리즘 태그
 
     @OneToMany(mappedBy = "problem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @Builder.Default
-    private List<BojUserProblem> users = new ArrayList<>();
+    private List<BojUserProblem> users = new ArrayList<>(); // 문제를 푼 충남대생
 
     @Column(length = 300)
-    private String source;
+    private String source; // 문제 출처
 
-    public void update(ProblemDto dto) {
-        if (dto.getTitle() != null) this.title = dto.getTitle();
-        if (dto.getLevel() != null) this.level = dto.getLevel();
-        if (dto.getSolvedCount() != null) this.solvedCount = dto.getSolvedCount();
-        if (dto.getVotedCount() != null) this.votedCount = dto.getVotedCount();
-        if (dto.getGivesNoRating() != null) this.givesNoRating = dto.getGivesNoRating();
-        if (dto.getAverageTries() != null) this.averageTries = dto.getAverageTries();
-//        if (dto.getTags() != null) this.tags = Arrays.stream(dto.getTags()).map(AlgorithmTag::from).toList();
-        if (dto.getSource() != null) this.source = dto.getSource();
-    }
-
-//    public static Problem from(ProblemDto dto) {
-//        return Problem.builder()
-//                .problemId(dto.getProblemId())
-//                .title(dto.getTitle())
-//                .level(dto.getLevel())
-//                .solvedCount(dto.getSolvedCount())
-//                .votedCount(dto.getVotedCount())
-//                .givesNoRating(dto.getGivesNoRating())
-//                .averageTries(dto.getAverageTries())
-//                .tags(Arrays.stream(dto.getTags()).map(AlgorithmTag::from).toList())
-//                .source(dto.getSource())
-//                .build();
-//    }
+    @Formula("(select count(*) from boj_user_problem bup where bup.problem_id = problem_id)")
+    private Long usersCount; // 문제를 푼 충남대생 수
 }

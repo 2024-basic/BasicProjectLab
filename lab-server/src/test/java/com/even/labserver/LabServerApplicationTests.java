@@ -12,15 +12,13 @@ import java.util.Arrays;
 class LabServerApplicationTests {
 
     @Autowired
-    private ProblemService problemService;
-
-    @Autowired
     private ScrapeManager scrapeManager;
 
     @Test
     void scrapeTest() {
-
-        problemService.findProblemById(1000);
+        for (var e : scrapeManager.getSchoolUsersAndCounts().entrySet()) {
+            System.out.println(e.getKey() + ": " + e.getValue());
+        }
     }
 
 }

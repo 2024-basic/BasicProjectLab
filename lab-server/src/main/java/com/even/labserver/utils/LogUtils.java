@@ -1,6 +1,9 @@
 package com.even.labserver.utils;
 
 public class LogUtils {
+    /**
+     * 현재 호출된 메소드의 이름을 반환한다.
+     */
     private static String getCurrentStackTrace() {
         var currentMethod = Thread.currentThread().getStackTrace()[3];
         var tokens = currentMethod.getClassName().split("\\.");

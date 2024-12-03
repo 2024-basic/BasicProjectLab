@@ -61,6 +61,20 @@ public class ProblemController {
         return ResponseEntity.ok(problem);
     }
 
+    @GetMapping("/problem/{id}/users")
+    @Operation(summary = "해당 ID에 대응되는 문제를 푼 유저들을 반환합니다")
+    public ResponseEntity<?> getProblemUsers(@Parameter(description = "문제의 ID 번호", example = "1000")
+                                             @PathVariable(name = "id", required = true) Integer id,
+
+                                             @Parameter(description = "페이지 번호, 0부터 시작합니다")
+                                             @RequestParam(name = "page", required = false, defaultValue = "0") Integer page
+                                             ) {
+        if (1000 > id || id > 38000) return ResponseEntity.badRequest().body("Invalid problem ID");
+
+        var users = problemService.findProblemUsers(id, page);
+        return ResponseEntity.ok(users);
+    }
+
     @GetMapping("/problems")
     @Operation(summary = "범위 내의 문제들을 반환합니다")
     public ResponseEntity<?> getProblems(@Parameter(description = "시작 문제 번호")
@@ -75,7 +89,7 @@ public class ProblemController {
     }
 
     @GetMapping("/recommended-problems")
-    @Operation(summary = "추천 문제들을 반환합니다", responses = {
+    @Operation(summary = "추천 문제들을 반환하거나, 적절한 검색 규칙에 따라 문제 검색을 수행합니다.", responses = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(examples = {
                             @ExampleObject(summary = "page=1, kw='스타', levelStart=1, levelEnd=30, isAsc=false, userId='tjgus1668', searchMode=false 일 때의 결과",
@@ -168,7 +182,6 @@ public class ProblemController {
                     })
             })
     })
-//    @Cacheable(value = "recommendedProblems", key = "{#page, #kw, #levelStart, #levelEnd, #isAsc, #userId, #searchMode, #solvedByUser}")
     public ResponseEntity<?> getRecommendedProblems(@Parameter(description = "페이지 번호, 0부터 시작합니다")
                                                     @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
 
@@ -187,16 +200,28 @@ public class ProblemController {
                                                     @Parameter(description = "사용자 ID")
                                                     @RequestParam(name = "userId", required = false, defaultValue = "") String userId,
 
-                                                    @Parameter(description = "검색 모드 여부, 검색 모드일 경우, page, kw, isAsc만 사용되고 푼 문제 수로 정렬됩니다.")
+                                                    @Parameter(description = "검색 모드 여부")
                                                     @RequestParam(name = "searchMode", required = false, defaultValue = "false") Boolean searchMode,
 
                                                     @Parameter(description = "사용자가 푼 문제만 반환할지 여부")
-                                                    @RequestParam(name = "solvedByUser", required = false, defaultValue = "false") Boolean solvedByUser) {
-        if (page < 0 || levelStart < 1 || levelEnd > 30 || levelStart > levelEnd)
+                                                    @RequestParam(name = "solvedByUser", required = false, defaultValue = "false") Boolean solvedByUser,
+
+                                                    @Parameter(description = "정렬 기준")
+                                                    @RequestParam(name = "sort", required = false, defaultValue = "solvedCount") String sort
+                                                    ) {
+        if (page < 0 || levelStart < 0 || levelEnd > 30 || levelStart > levelEnd)
             return ResponseEntity.badRequest().body("Invalid parameters");
 
-        var problems = problemService.getRecommendedProblems(page, kw, levelStart, levelEnd, isAsc, userId, searchMode, solvedByUser);
+        var problems = problemService.getRecommendedProblems(page, kw, levelStart, levelEnd, isAsc, userId, searchMode, solvedByUser, sort);
         return ResponseEntity.ok(problems);
+    }
+
+    @GetMapping("/problem-count")
+    @Operation(summary = "문제의 총 개수, 유저들이 푼 문제 개수를 반환합니다")
+    public ResponseEntity<?> getProblemCount() {
+        var total = problemService.getProblemCount();
+        var solved = problemService.getProblemCountSolvedByAllUsers();
+        return ResponseEntity.ok(new ProblemCountDto(total, solved));
     }
 
     @PostMapping("/scrape/problems/{size}")
@@ -210,4 +235,6 @@ public class ProblemController {
         var problems = problemService.scrapeUnscrapedProblems(size);
         return ResponseEntity.ok(detail ? problems : problems.size());
     }
+
+    public record ProblemCountDto(Integer total, Integer solved) {}
 }
