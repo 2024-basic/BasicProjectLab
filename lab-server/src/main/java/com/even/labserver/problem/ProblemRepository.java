@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -111,18 +112,60 @@ public interface ProblemRepository extends JpaRepository<Problem, Integer> {
             AND up.problem = p
           )
       AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%')) OR p.problemId = CAST(:title AS int))
-        AND NOT EXISTS (
-                SELECT 1
-                FROM AlgorithmTag t
-                WHERE t.key IN :tags
-                AND t.key NOT IN (
-                    SELECT pt.tag.key
-                    FROM ProblemAlgorithmTag pt
-                    WHERE pt.problem = p
-                )
+      AND NOT EXISTS (
+            SELECT 1
+            FROM AlgorithmTag t
+            WHERE t.key IN :tags
+            AND t.key NOT IN (
+                SELECT pt.tag.key
+                FROM ProblemAlgorithmTag pt
+                WHERE pt.problem = p
             )
+          )
 """)
     Page<Problem> findAllOnlySolvedBy(
+            @Param("userId") String userId,
+            @Param("title") String title,
+            @Param("levelStart") Integer levelStart,
+            @Param("levelEnd") Integer levelEnd,
+            @Param("tags") List<String> tags,
+            Pageable pageable
+    );
+
+    /**
+     * 충남대에서 주어진 사용자만 풀지 않은 문제를 주어진 검색 조건에 따라 조회합니다.
+     * @param userId 사용자 ID
+     * @param title 문제 제목
+     * @param levelStart 최저 난이도
+     * @param levelEnd 최고 난이도
+     * @param tags 태그 목록
+     * @param pageable 페이징 정보
+     * @return
+     */
+    @Query("""
+    SELECT DISTINCT p
+    FROM Problem p
+    WHERE p.level BETWEEN :levelStart AND :levelEnd
+    AND p.usersCount >= 1
+    AND NOT EXISTS (
+        SELECT 1
+        FROM BojUserProblem up
+        WHERE up.user.userId = :userId
+        AND up.problem = p
+    )
+    AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%')) OR p.problemId = CAST(:title AS int))
+    AND NOT EXISTS (
+        SELECT 1
+        FROM AlgorithmTag t
+        WHERE t.key IN :tags
+        AND t.key NOT IN (
+            SELECT pt.tag.key
+            FROM ProblemAlgorithmTag pt
+            WHERE pt.problem = p
+        )
+    )
+""")
+    Page<Problem> findAllByOnlyNotSolvedBy(
             @Param("userId") String userId,
             @Param("title") String title,
             @Param("levelStart") Integer levelStart,
@@ -186,6 +229,8 @@ public interface ProblemRepository extends JpaRepository<Problem, Integer> {
             "join pat.problem p " +
             "group by pat.tag.id")
     List<Object[]> findTagFrequencies();
+
+    Page<Problem> findAllByModifiedDateBefore(LocalDateTime modifiedDateBefore, Pageable pageable);
 
     /**
      * 충남대생이 푼 문제의 수를 조회합니다.

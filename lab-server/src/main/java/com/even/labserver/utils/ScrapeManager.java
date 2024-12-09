@@ -132,6 +132,10 @@ public class ScrapeManager {
      * @return 문제 정보 DTO 목록 List
      */
     public List<ProblemDto> getProblems(List<Integer> ids) {
+        if (ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         List<ProblemDto> ret = new ArrayList<>();
         for (int i = 0; i < ids.size(); i += BATCH_SIZE) {
             var subList = ids.subList(i, Math.min(i + BATCH_SIZE, ids.size()));
@@ -140,6 +144,31 @@ public class ScrapeManager {
 
         System.out.println(LogUtils.prefix() + "Scraped " + ret.size() + " problems");
         return ret;
+    }
+
+    public List<Integer> getNewProblems() {
+        final String url = BojUrl + "problem/added";
+        try {
+            var doc = requestDocument(url).orElse(null);
+            if (doc == null) return new ArrayList<>();
+            var ret = new ArrayList<Integer>();
+            var rows = doc.selectXpath(".//table[@id='problemset']/tbody/tr");
+            for (var row : rows) {
+                var id = Integer.parseInt(row.select("td").get(0).text().trim());
+                if (isExcluded(id)) {
+                    excludedIds.remove(id);
+                }
+
+                ret.add(id);
+            }
+
+            return ret;
+        }
+        catch (Exception e) {
+            System.out.println("Failed to get new problems: " + e.getMessage());
+        }
+
+        return new ArrayList<>();
     }
 
     /**

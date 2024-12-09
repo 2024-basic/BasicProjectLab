@@ -13,9 +13,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.PagedModel;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,15 +26,48 @@ import java.util.stream.Collectors;
 public class ProblemService {
     private final ProblemRepository problemRepository;
     private final AlgorithmTagRepository algorithmTagRepository;
+    private final ProblemUpdateService problemUpdateService;
     private static final Logger logger = LoggerFactory.getLogger(ProblemService.class);
 
     private final ScrapeManager scrapeManager;
     private final Integer PAGE_SIZE = 10; // 한 페이지에 보여줄 문제 수
     private final Set<String> allTags = new HashSet<>();
+    private final Set<Integer> toUpdateProblems = new HashSet<>();
     private final Map<String, PagedModel<ProblemDto>> searchCache = new HashMap<>();
     private final Map<Integer, List<SimplifiedBojUser>> problemUsersCache = new HashMap<>();
 
     private Integer startId = 1000;
+
+
+    @Scheduled(cron = "0 */30 * * * *")
+    public void updateProblems() {
+        updateProblemsInternal();
+    }
+
+    @Async
+    public void updateProblemsInternal() {
+        final int BATCH_SIZE = 100;
+
+        List<Integer> toUpdate = new ArrayList<>(toUpdateProblems);
+
+        if (toUpdate.size() < BATCH_SIZE) {
+            var pagable = PageRequest.of(0, 100 - toUpdate.size(), Sort.by(Sort.Order.asc("modifiedDate")));
+            var problems = problemRepository.findAllByModifiedDateBefore(LocalDateTime.now().minusDays(10), pagable);
+            toUpdate.addAll(problems.stream().map(Problem::getProblemId).toList());
+        }
+
+        toUpdate = toUpdate.subList(0, Math.min(BATCH_SIZE, toUpdate.size()));
+        var scraped = scrapeManager.getProblems(toUpdate);
+//        addOrUpdateProblems(scraped);
+        for (var dto : scraped) {
+            addOrUpdateProblem(dto);
+        }
+        System.out.println("Problems updated: " + toUpdate.size() + " problems[:10] = " + toUpdate.subList(0, Math.min(10, toUpdate.size())));
+
+        toUpdate.forEach(toUpdateProblems::remove);
+        searchCache.clear(); // 매 30분마다 캐시 초기화
+        problemUsersCache.clear();
+    }
 
     /**
      * 추천 문제를 가져오거나 검색 모드일 경우 문제 검색 결과를 가져옵니다.
@@ -75,13 +110,6 @@ public class ProblemService {
         return new PagedModel<>(ret);
     }
 
-    @Scheduled(cron = "0 */30 * * * *")
-    public void cleanUpCache() {
-        searchCache.clear(); // 매 30분마다 캐시 초기화
-        problemUsersCache.clear();
-        System.out.println("Cache cleared");
-    }
-
     /**
      * 문제 검색 결과를 가져옵니다.
      * @param page 페이지 번호
@@ -104,6 +132,8 @@ public class ProblemService {
         // userId가 $onlyOneUser인 경우 단 한 명의 사용자가 푼 문제를 가져옴,
         // $onlyOneUser_로 시작할 경우 충남대에서 해당 사용자만 푼 문제를 가져옴
         final String ONLY_ONE_USER = "$onlyOneUser";
+        // userId가 $notMe_로 시작할 경우 충남대에서 해당 사용자만 못 푼 문제를 가져옴
+        final String NOT_ME = "$notMe";
 
         var defaultSort = Sort.Order.asc("problemId");
         List<Sort.Order> sorts = List.of(isAsc ? Sort.Order.asc(sort) : Sort.Order.desc(sort), defaultSort);
@@ -126,6 +156,10 @@ public class ProblemService {
             userId = userId.substring(ONLY_ONE_USER.length() + 1);
             var tmp = problemRepository.findAllOnlySolvedBy(userId, kw, levelStart, levelEnd, tags, pageable);
             ret = tmp.map(ProblemDto::from);
+        } else if (userId.startsWith(NOT_ME + "_")) {
+            userId = userId.substring(NOT_ME.length() + 1);
+            var tmp = problemRepository.findAllByOnlyNotSolvedBy(userId, kw, levelStart, levelEnd, tags, pageable);
+            ret = tmp.map(ProblemDto::from);
         } else { // 전체 검색
             var tmp = problemRepository.findAllSearch(kw, levelStart, levelEnd, tags, pageable);
             ret = tmp.map(ProblemDto::from);
@@ -146,6 +180,13 @@ public class ProblemService {
         if (ret.isEmpty()) {
             scrapeProblem(id);
             ret = problemRepository.findById(id);
+        } else {
+            var now = LocalDateTime.now();
+            var lastModified = ret.get().getModifiedDate();
+            if (now.getDayOfYear() - lastModified.getDayOfYear() > 10 || now.getYear() != lastModified.getYear()) {
+                System.out.println("Problem " + id + " is too old. Added to update list.");
+                toUpdateProblems.add(id);
+            }
         }
         return ret.map(ProblemDto::from).orElse(null);
     }
@@ -209,16 +250,12 @@ public class ProblemService {
      */
     public ProblemDto addOrUpdateProblem(ProblemDto dto) {
         try {
-            Problem existing = problemRepository.findById(dto.getProblemId()).orElse(null);
+            Problem existing = problemUpdateService.getProblemWithTagsById(dto.getProblemId());
             if (existing == null) {
                 var problem = fromProblemDto(dto);
                 return ProblemDto.from(problemRepository.save(problem));
             } else {
-                // TODO: 수정 로직 추가
-//                problem.update(dto);
-//                handleTags(problem);
-//                return ProblemDto.from(problemRepository.save(problem));
-                return ProblemDto.from(existing);
+                return problemUpdateService.updateProblem(dto);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -238,8 +275,7 @@ public class ProblemService {
             if (existing == null) {
                 problems.add(fromProblemDto(dto));
             } else {
-                // TODO: 수정 로직 추가
-                problems.add(existing);
+                problems.add(fromProblemDto(problemUpdateService.updateProblem(dto)));
             }
         }
 
