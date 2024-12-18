@@ -6,7 +6,9 @@ import com.even.labserver.problem.tag.AlgorithmTag;
 import com.even.labserver.problem.tag.ProblemAlgorithmTag;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Formula;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +59,13 @@ public class Problem extends BaseTimeEntity {
 
     @Column(length = 300)
     private String source; // 문제 출처
+
+    @Column(nullable = false)
+    private Boolean korean; // 문제가 한국어를 지원하는지
+
+    @Column(nullable = false)
+    @ColumnDefault("true")
+    private Boolean solvable; // 채점 가능한 문제인지
 
     @Formula("(select count(*) from boj_user_problem bup where bup.problem_id = problem_id)")
     private Long usersCount; // 문제를 푼 충남대생 수

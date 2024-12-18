@@ -10,6 +10,7 @@ import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,32 +27,53 @@ public class ProblemUpdateService {
     }
 
     @Transactional
+    public List<ProblemDto> updateProblems(List<ProblemDto> dtoList) {
+        List<Problem> problems = new ArrayList<>();
+        for (var dto : dtoList) {
+            var problem = problemRepository.findById(dto.getProblemId()).orElse(null);
+            if (problem == null) continue;
+            apply(problem, dto);
+            problems.add(problem);
+        }
+
+        problems = problemRepository.saveAll(problems);
+
+        return problems.stream().map(ProblemDto::from).toList();
+    }
+
+    @Transactional
     public ProblemDto updateProblem(ProblemDto dto) {
         var problem = problemRepository.findById(dto.getProblemId()).orElse(null);
         if (problem == null) return null;
-        problem.setTitle(dto.getTitle());
-        problem.setLevel(dto.getLevel());
-        problem.setSource(dto.getSource());
-        problem.setAverageTries(dto.getAverageTries());
-        problem.setGivesNoRating(dto.getGivesNoRating());
-        problem.setVotedCount(dto.getVotedCount());
-        problem.setSolvedCount(dto.getSolvedCount());
+        apply(problem, dto);
+        problem = problemRepository.save(problem);
+        return ProblemDto.from(problem);
+    }
 
-        Hibernate.initialize(problem.getTags());
-        var existingTags = problem.getTags();
+    @Transactional
+    protected void apply(Problem orig, ProblemDto dto) {
+        orig.setTitle(dto.getTitle());
+        orig.setLevel(dto.getLevel());
+        orig.setSource(dto.getSource());
+        orig.setAverageTries(dto.getAverageTries());
+        orig.setGivesNoRating(dto.getGivesNoRating());
+        orig.setVotedCount(dto.getVotedCount());
+        orig.setSolvedCount(dto.getSolvedCount());
+        orig.setKorean(dto.getKorean());
+        orig.setSolvable(dto.getSolvable());
+
+        Hibernate.initialize(orig.getTags());
+        var existingTags = orig.getTags();
         var newTags = new ArrayList<ProblemAlgorithmTag>();
         for (var tag : dto.getTags()) {
             var existingTag = existingTags.stream().filter(t -> t.getTag().getKey().equals(tag.getKey())).findFirst().orElse(null);
             if (existingTag == null) {
-                newTags.add(ProblemAlgorithmTag.builder().problem(problem).tag(findTagByKey(tag)).build());
+                newTags.add(ProblemAlgorithmTag.builder().problem(orig).tag(findTagByKey(tag)).build());
             } else {
                 newTags.add(existingTag);
             }
         }
-        problem.setTags(newTags);
-
-        problem = problemRepository.save(problem);
-        return ProblemDto.from(problem);
+        orig.setTags(newTags);
     }
 
     private AlgorithmTag findTagByKey(AlgorithmTagDto dto) {

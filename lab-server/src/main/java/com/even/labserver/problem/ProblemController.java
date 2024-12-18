@@ -224,17 +224,17 @@ public class ProblemController {
         return ResponseEntity.ok(new ProblemCountDto(total, solved));
     }
 
-    @PostMapping("/scrape/problems/{size}")
-    @Operation(summary = "스크래핑하지 않은 문제를 solved.ac에서 스크래핑합니다")
-    public ResponseEntity<?> getProblems(@Parameter(description = "스크래핑할 문제의 목표 개수")
-                                         @PathVariable(name = "size", required = true) Integer size,
-                                         @Parameter(description = "스크래핑된 문제의 상세 정보를 반환할지 여부")
-                                         @RequestParam(name = "detail", required = false, defaultValue = "false") Boolean detail) {
-        if (size < 1) return ResponseEntity.badRequest().body("Invalid size");
-
-        var problems = problemService.scrapeUnscrapedProblems(size);
-        return ResponseEntity.ok(detail ? problems : problems.size());
-    }
+//    @PostMapping("/scrape/problems/{size}")
+//    @Operation(summary = "스크래핑하지 않은 문제를 solved.ac에서 스크래핑합니다")
+//    public ResponseEntity<?> getProblems(@Parameter(description = "스크래핑할 문제의 목표 개수")
+//                                         @PathVariable(name = "size", required = true) Integer size,
+//                                         @Parameter(description = "스크래핑된 문제의 상세 정보를 반환할지 여부")
+//                                         @RequestParam(name = "detail", required = false, defaultValue = "false") Boolean detail) {
+//        if (size < 1) return ResponseEntity.badRequest().body("Invalid size");
+//
+//        var problems = problemService.scrapeUnscrapedProblems(size);
+//        return ResponseEntity.ok(detail ? problems : problems.size());
+//    }
 
     public record ProblemCountDto(Integer total, Integer solved) {}
 }

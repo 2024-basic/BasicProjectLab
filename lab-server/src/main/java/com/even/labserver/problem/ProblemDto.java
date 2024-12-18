@@ -18,9 +18,11 @@ public class ProblemDto {
     private Integer solvedCount;
     private Integer votedCount;
     private Boolean givesNoRating;
+    private Boolean solvable = true;
     private Double averageTries;
     private AlgorithmTagDto[] tags;
     private String source;
+    private Boolean korean;
 
     public static ProblemDto from(Problem problem) {
         return ProblemDto.builder()
@@ -33,6 +35,8 @@ public class ProblemDto {
                 .averageTries(problem.getAverageTries())
                 .tags(problem.getTags().stream().map(x -> AlgorithmTagDto.from(x.getTag())).toArray(AlgorithmTagDto[]::new))
                 .source(problem.getSource())
+                .korean(problem.getKorean())
+                .solvable(problem.getSolvable())
                 .build();
     }
 }

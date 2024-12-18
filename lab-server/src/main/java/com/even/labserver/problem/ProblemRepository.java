@@ -24,186 +24,187 @@ public interface ProblemRepository extends JpaRepository<Problem, Integer> {
 
     /**
      * 충남대생이 풀지 않은 문제를 검색 조건에 따라 조회합니다.
-     * @param title 문제 제목
-     * @param levelStart 최저 난이도
-     * @param levelEnd 최고 난이도
-     * @param tags 태그 목록
-     * @param pageable 페이징 정보
      * @return 조건을 만족하는 문제 목록 Page
      */
     @Query("""
-    SELECT DISTINCT p
-    FROM Problem p
-    WHERE p.level BETWEEN :levelStart AND :levelEnd
-      AND p.users IS EMPTY
-      AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%')) OR p.problemId = CAST(:title AS int))
-      AND NOT EXISTS (
-          SELECT 1
-          FROM AlgorithmTag t
-          WHERE t.key IN :tags
-          AND t.key NOT IN (
-              SELECT pt.tag.key
-              FROM ProblemAlgorithmTag pt
-              WHERE pt.problem = p
-          )
+SELECT DISTINCT p
+FROM Problem p
+WHERE p.level BETWEEN :#{#criteria.levelStart} AND :#{#criteria.levelEnd}
+  AND p.users IS EMPTY
+  AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :#{#criteria.title}, '%')) OR p.problemId = CAST(:#{#criteria.title} AS int))
+  AND NOT EXISTS (
+      SELECT 1
+      FROM AlgorithmTag t
+      WHERE t.key IN :#{#criteria.tags}
+      AND t.key NOT IN (
+          SELECT pt.tag.key
+          FROM ProblemAlgorithmTag pt
+          WHERE pt.problem = p
       )
+  )
+  AND p.korean = CASE :#{#criteria.korean}
+      WHEN 0 THEN FALSE
+      WHEN 1 THEN TRUE
+      ELSE p.korean
+  END
+  AND p.solvable = CASE :#{#criteria.solvable}
+      WHEN TRUE THEN TRUE
+      ELSE p.solvable
+  END
     """)
     Page<Problem> findAllNotSolvedByAllUsers(
-            @Param("title") String title,
-            @Param("levelStart") Integer levelStart,
-            @Param("levelEnd") Integer levelEnd,
-            @Param("tags") List<String> tags,
+            @Param("criteria") ProblemSearchCriteria criteria,
             Pageable pageable
     );
 
     /**
      * 단 한 명의 충남대생이 푼 문제를 주어진 검색 조건에 따라 조회합니다.
-     * @param title 문제 제목
-     * @param levelStart 최저 난이도
-     * @param levelEnd 최고 난이도
-     * @param tags 태그 목록
-     * @param pageable 페이징 정보
      * @return 조건을 만족하는 문제 목록 Page
      */
     @Query("""
-    SELECT DISTINCT p
-    FROM Problem p
-    WHERE p.level BETWEEN :levelStart AND :levelEnd
-      AND p.usersCount = 1
-      AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%')) OR p.problemId = CAST(:title AS int))
-      AND NOT EXISTS (
-            SELECT 1
-            FROM AlgorithmTag t
-            WHERE t.key IN :tags
-            AND t.key NOT IN (
-                SELECT pt.tag.key
-                FROM ProblemAlgorithmTag pt
-                WHERE pt.problem = p
-            )
-          )
-    """)
-    Page<Problem> findAllOnlyOneSolved(
-            @Param("title") String title,
-            @Param("levelStart") Integer levelStart,
-            @Param("levelEnd") Integer levelEnd,
-            @Param("tags") List<String> tags,
-            Pageable pageable
-    );
-
-    /**
-     * 충남대에서 주어진 사용자만 푼 문제를 주어진 검색 조건에 따라 조회합니다.
-     * @param userId 사용자 ID
-     * @param title 문제 제목
-     * @param levelStart 최저 난이도
-     * @param levelEnd 최고 난이도
-     * @param tags 태그 목록
-     * @param pageable 페이징 정보
-     * @return 조건을 만족하는 문제 목록 Page
-     */
-    @Query("""
-    SELECT DISTINCT p
-    FROM Problem p
-    WHERE p.level BETWEEN :levelStart AND :levelEnd
-      AND p.usersCount = 1
-      AND EXISTS (
-            SELECT 1
-            FROM BojUserProblem up
-            WHERE up.user.userId = :userId
-            AND up.problem = p
-          )
-      AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%')) OR p.problemId = CAST(:title AS int))
-      AND NOT EXISTS (
-            SELECT 1
-            FROM AlgorithmTag t
-            WHERE t.key IN :tags
-            AND t.key NOT IN (
-                SELECT pt.tag.key
-                FROM ProblemAlgorithmTag pt
-                WHERE pt.problem = p
-            )
-          )
-""")
-    Page<Problem> findAllOnlySolvedBy(
-            @Param("userId") String userId,
-            @Param("title") String title,
-            @Param("levelStart") Integer levelStart,
-            @Param("levelEnd") Integer levelEnd,
-            @Param("tags") List<String> tags,
-            Pageable pageable
-    );
-
-    /**
-     * 충남대에서 주어진 사용자만 풀지 않은 문제를 주어진 검색 조건에 따라 조회합니다.
-     * @param userId 사용자 ID
-     * @param title 문제 제목
-     * @param levelStart 최저 난이도
-     * @param levelEnd 최고 난이도
-     * @param tags 태그 목록
-     * @param pageable 페이징 정보
-     * @return
-     */
-    @Query("""
-    SELECT DISTINCT p
-    FROM Problem p
-    WHERE p.level BETWEEN :levelStart AND :levelEnd
-    AND p.usersCount >= 1
-    AND NOT EXISTS (
-        SELECT 1
-        FROM BojUserProblem up
-        WHERE up.user.userId = :userId
-        AND up.problem = p
-    )
-    AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%')) OR p.problemId = CAST(:title AS int))
-    AND NOT EXISTS (
+SELECT DISTINCT p
+FROM Problem p
+WHERE p.level BETWEEN :#{#criteria.levelStart} AND :#{#criteria.levelEnd}
+  AND p.usersCount = 1
+  AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :#{#criteria.title}, '%')) OR p.problemId = CAST(:#{#criteria.title} AS int))
+  AND NOT EXISTS (
         SELECT 1
         FROM AlgorithmTag t
-        WHERE t.key IN :tags
+        WHERE t.key IN :#{#criteria.tags}
         AND t.key NOT IN (
             SELECT pt.tag.key
             FROM ProblemAlgorithmTag pt
             WHERE pt.problem = p
         )
+      )
+  AND p.korean = CASE :#{#criteria.korean}
+      WHEN 0 THEN FALSE
+      WHEN 1 THEN TRUE
+      ELSE p.korean
+  END
+  AND p.solvable = CASE :#{#criteria.solvable}
+      WHEN TRUE THEN TRUE
+      ELSE p.solvable
+  END
+    """)
+    Page<Problem> findAllOnlyOneSolved(
+            @Param("criteria") ProblemSearchCriteria criteria,
+            Pageable pageable
+    );
+
+    /**
+     * 충남대에서 주어진 사용자만 푼 문제를 주어진 검색 조건에 따라 조회합니다.
+     * @return 조건을 만족하는 문제 목록 Page
+     */
+    @Query("""
+SELECT DISTINCT p
+FROM Problem p
+WHERE p.level BETWEEN :#{#criteria.levelStart} AND :#{#criteria.levelEnd}
+  AND p.usersCount = 1
+  AND EXISTS (
+        SELECT 1
+        FROM BojUserProblem up
+        WHERE up.user.userId = :#{#criteria.userId}
+        AND up.problem = p
+      )
+  AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :#{#criteria.title}, '%')) OR p.problemId = CAST(:#{#criteria.title} AS int))
+  AND NOT EXISTS (
+        SELECT 1
+        FROM AlgorithmTag t
+        WHERE t.key IN :#{#criteria.tags}
+        AND t.key NOT IN (
+            SELECT pt.tag.key
+            FROM ProblemAlgorithmTag pt
+            WHERE pt.problem = p
+        )
+      )
+  AND p.korean = CASE :#{#criteria.korean}
+      WHEN 0 THEN FALSE
+      WHEN 1 THEN TRUE
+      ELSE p.korean
+  END
+  AND p.solvable = CASE :#{#criteria.solvable}
+      WHEN TRUE THEN TRUE
+      ELSE p.solvable
+  END
+""")
+    Page<Problem> findAllOnlySolvedBy(
+            @Param("criteria") ProblemSearchCriteria criteria,
+            Pageable pageable
+    );
+
+    /**
+     * 충남대에서 주어진 사용자만 풀지 않은 문제를 주어진 검색 조건에 따라 조회합니다.
+     * @return
+     */
+    @Query("""
+SELECT DISTINCT p
+FROM Problem p
+WHERE p.level BETWEEN :#{#criteria.levelStart} AND :#{#criteria.levelEnd}
+AND p.usersCount >= 1
+AND NOT EXISTS (
+    SELECT 1
+    FROM BojUserProblem up
+    WHERE up.user.userId = :#{#criteria.userId}
+    AND up.problem = p
+)
+AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :#{#criteria.title}, '%')) OR p.problemId = CAST(:#{#criteria.title} AS int))
+AND NOT EXISTS (
+    SELECT 1
+    FROM AlgorithmTag t
+    WHERE t.key IN :#{#criteria.tags}
+    AND t.key NOT IN (
+        SELECT pt.tag.key
+        FROM ProblemAlgorithmTag pt
+        WHERE pt.problem = p
     )
+)
+AND p.korean = CASE :#{#criteria.korean}
+      WHEN 0 THEN FALSE
+      WHEN 1 THEN TRUE
+      ELSE p.korean
+END
+AND p.solvable = CASE :#{#criteria.solvable}
+      WHEN TRUE THEN TRUE
+      ELSE p.solvable
+END
 """)
     Page<Problem> findAllByOnlyNotSolvedBy(
-            @Param("userId") String userId,
-            @Param("title") String title,
-            @Param("levelStart") Integer levelStart,
-            @Param("levelEnd") Integer levelEnd,
-            @Param("tags") List<String> tags,
+            @Param("criteria") ProblemSearchCriteria criteria,
             Pageable pageable
     );
 
     /**
      * 주어진 검색 조건에 따라 문제 목록을 조회합니다.
-     * @param title 문제 제목
-     * @param levelStart 최저 난이도
-     * @param levelEnd 최고 난이도
-     * @param tags 태그 목록
-     * @param pageable 페이징 정보
      * @return
      */
     @Query("""
-    SELECT DISTINCT p
-    FROM Problem p
-    WHERE p.level BETWEEN :levelStart AND :levelEnd
-      AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%')) OR p.problemId = CAST(:title AS int))
-      AND NOT EXISTS (
-          SELECT 1
-          FROM AlgorithmTag t
-          WHERE t.key IN :tags
-          AND t.key NOT IN (
-              SELECT pt.tag.key
-              FROM ProblemAlgorithmTag pt
-              WHERE pt.problem = p
-          )
+SELECT DISTINCT p
+FROM Problem p
+WHERE p.level BETWEEN :#{#criteria.levelStart} AND :#{#criteria.levelEnd}
+  AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :#{#criteria.title}, '%')) OR p.problemId = CAST(:#{#criteria.title} AS int))
+  AND NOT EXISTS (
+      SELECT 1
+      FROM AlgorithmTag t
+      WHERE t.key IN :#{#criteria.tags}
+      AND t.key NOT IN (
+          SELECT pt.tag.key
+          FROM ProblemAlgorithmTag pt
+          WHERE pt.problem = p
       )
+  )
+  AND p.korean = CASE :#{#criteria.korean}
+      WHEN 0 THEN FALSE
+      WHEN 1 THEN TRUE
+      ELSE p.korean
+  END
+  AND p.solvable = CASE :#{#criteria.solvable}
+      WHEN TRUE THEN TRUE
+      ELSE p.solvable
+  END
 """)
     Page<Problem> findAllSearch(
-            @Param("title") String title,
-            @Param("levelStart") Integer levelStart,
-            @Param("levelEnd") Integer levelEnd,
-            @Param("tags") List<String> tags,
+            @Param("criteria") ProblemSearchCriteria criteria,
             Pageable pageable
     );
 

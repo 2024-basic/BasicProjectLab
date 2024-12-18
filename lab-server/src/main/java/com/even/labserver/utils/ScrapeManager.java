@@ -348,6 +348,9 @@ public class ScrapeManager {
      */
     private static ProblemDto fromProblemJson(String json) {
         var problemElement = JsonParser.parseString(json).getAsJsonObject();
+        var titles = problemElement.get("titles").getAsJsonArray();
+        var korean = titles.asList().stream().anyMatch(x -> x.getAsJsonObject().get("language").getAsString().equals("ko"));
+
         var ret = ProblemDto.builder()
                 .problemId(problemElement.get("problemId").getAsInt())
                 .title(problemElement.get("titleKo").getAsString())
@@ -356,6 +359,8 @@ public class ScrapeManager {
                 .votedCount(problemElement.get("votedUserCount").getAsInt())
                 .givesNoRating(problemElement.get("givesNoRating").getAsBoolean())
                 .averageTries(problemElement.get("averageTries").getAsDouble())
+                .korean(korean)
+                .solvable(problemElement.get("isSolvable").getAsBoolean())
                 .build();
 
         var tagsArray = problemElement.getAsJsonArray("tags");

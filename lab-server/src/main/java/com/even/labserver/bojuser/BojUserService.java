@@ -145,8 +145,13 @@ public class BojUserService {
 
     @Async
     public void updateAllUsers() {
-        var usersDB = bojUserRepository.findAll();
         var scraped = scrapeManager.getSchoolUsersAndCounts();
+        if (scraped.isEmpty()) {
+            System.out.println("Scraped data is empty.");
+            return;
+        }
+
+        var usersDB = bojUserRepository.findAll();
 
         for (var user : usersDB) {
             var userId = user.getUserId();
